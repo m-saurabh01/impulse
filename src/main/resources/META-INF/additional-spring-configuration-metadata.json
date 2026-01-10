@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "mail.attachments.base-path",
+    "type": "java.lang.String",
+    "description": "A description for 'mail.attachments.base-path'"
+  },
+  {
+    "name": "mail.attachments.max-size",
+    "type": "java.lang.String",
+    "description": "A description for 'mail.attachments.max-size'"
+  }
+]}
