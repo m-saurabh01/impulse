@@ -16,6 +16,25 @@
     <c:otherwise>
         <div class="mail-list-container">
             <div class="mail-list">
+                <!-- Bulk Actions Toolbar -->
+                <div class="bulk-toolbar" id="bulkToolbar" style="display: none;">
+                    <div class="bulk-toolbar-left">
+                        <label class="select-all-container">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="bulk-count"><span id="selectedCount">0</span> selected</span>
+                    </div>
+                    <div class="bulk-toolbar-actions">
+                        <button class="bulk-btn" onclick="bulkRestore()" title="Restore">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <button class="bulk-btn bulk-btn-danger" onclick="bulkPermanentDelete()" title="Delete permanently">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Empty Trash Row -->
                 <div class="empty-trash-row" onclick="emptyTrash()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -31,18 +50,27 @@
                     <c:set var="initials" value="${fn:toUpperCase(fn:substring(r.email.sender.email, 0, 2))}" />
                     
                     <div class="mail-row" 
-                         data-email-id="${r.email.id}"
-                         onclick="selectEmail(this, ${r.email.id}, 'trash')">
+                         data-email-id="${r.email.id}">
                         
-                        <div class="mail-avatar color-${avatarColor}">${initials}</div>
+                        <label class="mail-checkbox" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="email-checkbox" data-email-id="${r.email.id}" onchange="updateBulkSelection()">
+                            <span class="checkmark"></span>
+                        </label>
                         
-                        <div class="mail-content">
-                            <div class="mail-sender">${r.email.sender.email}</div>
-                            <div class="mail-subject">${not empty r.email.subject ? r.email.subject : '(No subject)'}</div>
-                        </div>
-                        
-                        <div class="mail-meta">
-                            <span class="mail-time">${fn:substring(r.email.createdAt, 5, 10)}</span>
+                        <div class="mail-row-content" onclick="selectEmail(this.parentElement, ${r.email.id}, 'trash')">
+                            <div class="mail-avatar color-${avatarColor}">${initials}</div>
+                            
+                            <div class="mail-content">
+                                <div class="mail-sender">${r.email.sender.email}</div>
+                                <div class="mail-subject">${not empty r.email.subject ? r.email.subject : '(No subject)'}</div>
+                            </div>
+                            
+                            <div class="mail-meta">
+                                <span class="mail-time">${fn:substring(r.email.createdAt, 5, 10)}</span>
+                                <button class="mail-actions-btn" onclick="event.stopPropagation(); toggleMailMenu(this, ${r.email.id}, 'trash', ${r.starred})" title="More actions">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </c:forEach>

@@ -1,13 +1,17 @@
 package com.wipro.iaf.email.mail.service;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wipro.iaf.email.attachment.service.AttachmentService;
 import com.wipro.iaf.email.mail.dto.ComposeEmailRequest;
+import com.wipro.iaf.email.mail.dto.EmailNotification;
 import com.wipro.iaf.email.mail.entity.Email;
 import com.wipro.iaf.email.mail.entity.EmailRecipient;
 import com.wipro.iaf.email.mail.repo.EmailRecipientRepository;
@@ -19,21 +23,88 @@ import com.wipro.iaf.email.user.repo.UserRepository;
 @Service
 public class EmailComposeService {
 
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    );
+
 	private final EmailRepository emailRepo;
     private final EmailRecipientRepository recipientRepo;
     private final UserRepository userRepo;
     private final AttachmentService attachmentService;
+    private final NotificationService notificationService;
 
     public EmailComposeService(
             EmailRepository emailRepo,
             EmailRecipientRepository recipientRepo,
             UserRepository userRepo,
-            AttachmentService attachmentService) {
+            AttachmentService attachmentService,
+            NotificationService notificationService) {
 
         this.emailRepo = emailRepo;
         this.recipientRepo = recipientRepo;
         this.userRepo = userRepo;
         this.attachmentService = attachmentService;
+        this.notificationService = notificationService;
+    }
+
+    /**
+     * Validate and send email with proper error handling
+     */
+    @Transactional
+    public EmailComposeResult composeAndSendWithValidation(ComposeEmailRequest req, SecurityUser sender) {
+        List<String> errors = new ArrayList<>();
+        List<String> invalidEmails = new ArrayList<>();
+        List<String> unknownUsers = new ArrayList<>();
+
+        // Collect all recipient emails
+        List<String> allToValidate = new ArrayList<>();
+        if (req.getTo() != null) allToValidate.addAll(req.getTo());
+        if (req.getCc() != null) allToValidate.addAll(req.getCc());
+        if (req.getBcc() != null) allToValidate.addAll(req.getBcc());
+
+        // Must have at least one recipient (unless saving as draft)
+        if (!req.isDraft() && allToValidate.isEmpty()) {
+            errors.add("Please specify at least one recipient");
+            return new EmailComposeResult(false, errors);
+        }
+
+        // Validate each email
+        for (String email : allToValidate) {
+            if (email == null || email.trim().isEmpty()) continue;
+            
+            String trimmed = email.trim().toLowerCase();
+            
+            // Check email format
+            if (!EMAIL_PATTERN.matcher(trimmed).matches()) {
+                invalidEmails.add(email);
+                continue;
+            }
+            
+            // Check if user exists in system
+            if (!userRepo.findByEmail(trimmed).isPresent()) {
+                unknownUsers.add(email);
+            }
+        }
+
+        if (!invalidEmails.isEmpty()) {
+            errors.add("Invalid email format: " + String.join(", ", invalidEmails));
+        }
+        if (!unknownUsers.isEmpty()) {
+            errors.add("Users not found: " + String.join(", ", unknownUsers));
+        }
+
+        if (!errors.isEmpty()) {
+            return new EmailComposeResult(false, errors);
+        }
+
+        // All validations passed, proceed with sending
+        try {
+            composeAndSend(req, sender);
+            return new EmailComposeResult(true, null);
+        } catch (Exception e) {
+            errors.add("Failed to send email: " + e.getMessage());
+            return new EmailComposeResult(false, errors);
+        }
     }
 
     @Transactional
@@ -45,10 +116,8 @@ public class EmailComposeService {
         if (req.getDraftId() != null) {
             email = emailRepo.findByIdAndSenderId(req.getDraftId(), sender.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Draft not found"));
-            // Clear existing recipients if sending (not saving as draft again)
-            if (!req.isDraft()) {
-                recipientRepo.deleteByEmailId(email.getId());
-            }
+            // Clear existing recipients when updating (for both draft and send)
+            recipientRepo.deleteByEmailId(email.getId());
         } else {
             email = new Email();
             email.setSender(userRepo.getById(sender.getId()));
@@ -57,6 +126,7 @@ public class EmailComposeService {
         email.setSubject(req.getSubject());
         email.setBodyHtml(req.getBodyHtml());
         email.setDraft(req.isDraft());
+        email.setReadReceiptRequested(req.isReadReceiptRequested());
 
         emailRepo.save(email); // ID generated here for new emails
 
@@ -76,7 +146,13 @@ public class EmailComposeService {
             throw new RuntimeException("Attachment upload failed", ex);
         }
 
-        // Drafts stop here
+        // Save recipients for both drafts and sent emails
+        // (For drafts, this allows us to restore recipients when editing)
+        addRecipients(email, req.getTo(), "TO");
+        addRecipients(email, req.getCc(), "CC");
+        addRecipients(email, req.getBcc(), "BCC");
+
+        // Drafts stop here (don't create SENDER record or send notifications)
         if (req.isDraft()) {
             return;
         }
@@ -91,9 +167,42 @@ public class EmailComposeService {
         senderRecipient.setDeleted(false);
         recipientRepo.save(senderRecipient);
 
-        addRecipients(email, req.getTo(), "TO");
-        addRecipients(email, req.getCc(), "CC");
-        addRecipients(email, req.getBcc(), "BCC");
+        // Collect all recipients for notification
+        List<String> allRecipients = new ArrayList<>();
+        if (req.getTo() != null) allRecipients.addAll(req.getTo());
+        if (req.getCc() != null) allRecipients.addAll(req.getCc());
+        if (req.getBcc() != null) allRecipients.addAll(req.getBcc());
+
+        // Send real-time notifications to all recipients
+        sendNotifications(email, senderUser.getEmail(), allRecipients);
+    }
+
+    /**
+     * Send WebSocket notifications to recipients
+     */
+    private void sendNotifications(Email email, String senderEmail, List<String> recipients) {
+        // Create preview text from body (strip HTML, limit length)
+        String preview = email.getBodyHtml() != null 
+            ? email.getBodyHtml().replaceAll("<[^>]*>", "").trim()
+            : "";
+        if (preview.length() > 100) {
+            preview = preview.substring(0, 100) + "...";
+        }
+
+        // Format date like inbox.jsp: "Jan 14"
+        String timestamp = email.getCreatedAt() != null 
+            ? email.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM dd"))
+            : "";
+
+        EmailNotification notification = new EmailNotification(
+            email.getId(),
+            senderEmail,
+            email.getSubject() != null ? email.getSubject() : "(No subject)",
+            preview,
+            timestamp
+        );
+
+        notificationService.notifyNewEmailToAll(recipients, notification);
     }
 
 

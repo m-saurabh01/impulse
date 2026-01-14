@@ -4,7 +4,9 @@ package com.wipro.iaf.email.mail.service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +34,11 @@ public class MailboxService {
     @Transactional(readOnly = true)
     public Page<EmailRecipient> inbox(Long userId, Pageable pageable) {
         return recipientRepo.findInbox(userId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EmailRecipient> searchInbox(Long userId, String query, Pageable pageable) {
+        return recipientRepo.searchInbox(userId, query, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -124,6 +131,89 @@ public class MailboxService {
     @Transactional
     public void emptyTrash(Long userId) {
         recipientRepo.deleteAllTrashedByUserId(userId);
+    }
+
+    /**
+     * Get conversation thread for an email (excluding the current email)
+     * Returns all emails in the same thread, ordered by creation date
+     */
+    @Transactional(readOnly = true)
+    public List<Email> getConversationThread(Long threadId, Long currentEmailId) {
+        List<Email> threadEmails = emailRepo.findByThreadId(threadId);
+        // Exclude the current email from the thread list
+        return threadEmails.stream()
+            .filter(e -> !e.getId().equals(currentEmailId))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Delete a draft permanently (only drafts owned by the user)
+     */
+    @Transactional
+    public void deleteDraft(Long emailId, Long userId) {
+        emailRepo.findByIdAndSenderId(emailId, userId)
+            .filter(Email::isDraft)
+            .ifPresent(email -> {
+                // Delete recipients first
+                recipientRepo.deleteByEmailId(emailId);
+                // Delete the email
+                emailRepo.delete(email);
+            });
+    }
+
+    /**
+     * Get starred emails for a user
+     */
+    @Transactional(readOnly = true)
+    public Page<EmailRecipient> starred(Long userId, Pageable pageable) {
+        return recipientRepo.findStarred(userId, pageable);
+    }
+
+    /**
+     * Toggle star status for an email
+     */
+    @Transactional
+    public boolean toggleStar(Long emailId, Long userId) {
+        Optional<EmailRecipient> recipientOpt = recipientRepo.findByEmailIdAndUserId(emailId, userId);
+        if (recipientOpt.isPresent()) {
+            EmailRecipient r = recipientOpt.get();
+            boolean newStarred = !r.isStarred();
+            r.setStarred(newStarred);
+            return newStarred;
+        }
+        return false;
+    }
+
+    /**
+     * Mark email as read and handle read receipt if requested
+     */
+    @Transactional
+    public void markAsReadWithReceipt(Long emailId, Long userId) {
+        recipientRepo.findByEmailIdAndUserId(emailId, userId)
+            .ifPresent(r -> {
+                r.setRead(true);
+                // Check if read receipt is requested and not already sent
+                if (r.getEmail().isReadReceiptRequested() && !r.isReadReceiptSent()) {
+                    r.setReadReceiptSent(true);
+                    // TODO: Send notification to sender about read receipt
+                }
+            });
+    }
+
+    /**
+     * Get email recipient for a user
+     */
+    @Transactional(readOnly = true)
+    public Optional<EmailRecipient> getRecipient(Long emailId, Long userId) {
+        return recipientRepo.findByEmailIdAndUserId(emailId, userId);
+    }
+
+    /**
+     * Count unread emails in inbox for a user
+     */
+    @Transactional(readOnly = true)
+    public long countUnreadInbox(Long userId) {
+        return recipientRepo.countUnreadInbox(userId);
     }
 
 }

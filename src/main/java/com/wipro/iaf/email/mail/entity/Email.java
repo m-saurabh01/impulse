@@ -11,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -21,7 +22,13 @@ import com.wipro.iaf.email.user.entity.User;
 import lombok.Data;
 
 @Entity
-@Table(name = "emails")
+@Table(name = "emails", indexes = {
+    @Index(name = "idx_email_sender", columnList = "sender_id"),
+    @Index(name = "idx_email_thread", columnList = "thread_id"),
+    @Index(name = "idx_email_draft", columnList = "is_draft"),
+    @Index(name = "idx_email_created", columnList = "created_at DESC"),
+    @Index(name = "idx_email_sender_draft", columnList = "sender_id, is_draft")
+})
 @Data
 public class Email {
 
@@ -44,6 +51,13 @@ public class Email {
 
     @Column(name = "is_draft")
     private boolean draft;
+
+    @Column(name = "read_receipt_requested")
+    private Boolean readReceiptRequested = false;
+
+    public boolean isReadReceiptRequested() {
+        return readReceiptRequested != null && readReceiptRequested;
+    }
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();

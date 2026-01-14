@@ -94,4 +94,78 @@ public interface EmailRecipientRepository
 	@Query("DELETE FROM EmailRecipient r WHERE r.user.id = :userId AND r.deleted = true")
 	void deleteAllTrashedByUserId(@Param("userId") Long userId);
 
+	// Search across inbox (subject, body, sender email, sender name)
+	@Query(
+	    value =
+	        "SELECT r " +
+	        "FROM EmailRecipient r " +
+	        "JOIN FETCH r.email e " +
+	        "JOIN FETCH e.sender s " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.recipientType != 'SENDER' " +
+	        "AND e.draft = false " +
+	        "AND (LOWER(e.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(e.bodyHtml) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(s.email) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(s.displayName) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+	        "ORDER BY e.createdAt DESC",
+
+	    countQuery =
+	        "SELECT COUNT(r) " +
+	        "FROM EmailRecipient r " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.recipientType != 'SENDER' " +
+	        "AND r.email.draft = false " +
+	        "AND (LOWER(r.email.subject) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(r.email.bodyHtml) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(r.email.sender.email) LIKE LOWER(CONCAT('%', :query, '%')) " +
+	        "     OR LOWER(r.email.sender.displayName) LIKE LOWER(CONCAT('%', :query, '%')))"
+	)
+	Page<EmailRecipient> searchInbox(
+	        @Param("userId") Long userId,
+	        @Param("query") String query,
+	        Pageable pageable);
+
+	// Find starred emails
+	@Query(
+	    value =
+	        "SELECT r " +
+	        "FROM EmailRecipient r " +
+	        "JOIN FETCH r.email e " +
+	        "JOIN FETCH e.sender s " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.starred = true " +
+	        "ORDER BY e.createdAt DESC",
+
+	    countQuery =
+	        "SELECT COUNT(r) " +
+	        "FROM EmailRecipient r " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.starred = true"
+	)
+	Page<EmailRecipient> findStarred(
+	        @Param("userId") Long userId,
+	        Pageable pageable);
+
+	// Toggle star
+	@Modifying
+	@Query("UPDATE EmailRecipient r SET r.starred = :starred WHERE r.email.id = :emailId AND r.user.id = :userId")
+	void updateStarred(@Param("emailId") Long emailId, @Param("userId") Long userId, @Param("starred") boolean starred);
+
+	// Count unread emails in inbox
+	@Query(
+	    "SELECT COUNT(r) " +
+	    "FROM EmailRecipient r " +
+	    "WHERE r.user.id = :userId " +
+	    "AND r.deleted = false " +
+	    "AND r.recipientType != 'SENDER' " +
+	    "AND r.email.draft = false " +
+	    "AND r.read = false"
+	)
+	long countUnreadInbox(@Param("userId") Long userId);
+
 }

@@ -16,16 +16,26 @@ public class SecurityUser implements UserDetails {
     private final String email;
     private final String password;
     private final String role;
+    private final String displayName;
 
     public SecurityUser(User user) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.password = user.getPasswordHash();
         this.role = user.getRole();
+        this.displayName = user.getDisplayNameOrEmail();
     }
 
     public Long getId() {
         return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

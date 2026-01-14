@@ -19,6 +19,7 @@ public class ComposeEmailRequest {
 
     private boolean draft;
     private Long threadId;
+    private boolean readReceiptRequested;
 
     private List<MultipartFile> attachments;
   

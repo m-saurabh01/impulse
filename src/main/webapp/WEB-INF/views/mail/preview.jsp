@@ -3,9 +3,43 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <div class="preview-header">
-    <div class="preview-header-top">
-        <h2 class="preview-subject">${not empty email.subject ? email.subject : '(No subject)'}</h2>
+    <div class="preview-actions-row">
         <div class="preview-actions">
+            <%-- Star toggle - show for inbox/sent/starred --%>
+            <c:if test="${source == 'inbox' || source == 'sent' || source == 'starred'}">
+                <button class="action-btn action-btn-star ${recipient.starred ? 'starred' : ''}" 
+                        onclick="toggleStarPreview(${email.id}, this)" 
+                        title="${recipient.starred ? 'Remove from starred' : 'Add to starred'}" 
+                        id="previewStarBtn">
+                    <i class="bi ${recipient.starred ? 'bi-star-fill' : 'bi-star'}"></i>
+                    <span>${recipient.starred ? 'Starred' : 'Star'}</span>
+                </button>
+            </c:if>
+            <%-- Reply buttons - only show for inbox/sent (not trash or draft) --%>
+            <c:if test="${source == 'inbox' || source == 'sent'}">
+                <button class="action-btn action-btn-primary" onclick="replyToEmail(${email.id}, false)" title="Reply">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 17 4 12 9 7"></polyline>
+                        <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                    </svg>
+                    <span>Reply</span>
+                </button>
+                <button class="action-btn action-btn-secondary" onclick="replyToEmail(${email.id}, true)" title="Reply All">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 17 4 12 9 7"></polyline>
+                        <polyline points="15 17 10 12 15 7"></polyline>
+                        <path d="M20 18v-2a4 4 0 0 0-4-4H10"></path>
+                    </svg>
+                    <span>Reply All</span>
+                </button>
+                <button class="action-btn action-btn-secondary" onclick="forwardEmail(${email.id})" title="Forward">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 17 20 12 15 7"></polyline>
+                        <path d="M4 18v-2a4 4 0 0 1 4-4h12"></path>
+                    </svg>
+                    <span>Forward</span>
+                </button>
+            </c:if>
             <c:if test="${source != 'trash'}">
                 <button class="action-btn action-btn-danger" onclick="moveToTrash(${email.id})" title="Move to trash">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -38,6 +72,8 @@
         </div>
     </div>
     
+    <h2 class="preview-subject">${not empty email.subject ? email.subject : '(No subject)'}</h2>
+    
     <div class="preview-sender-row">
         <div class="preview-avatar">
             ${fn:toUpperCase(fn:substring(email.sender.email, 0, 1))}
@@ -51,7 +87,8 @@
                 <c:if test="${not empty email.ccRecipients}">
                     <div class="preview-recipient-line"><span class="recipient-label">Cc:</span> ${email.ccRecipients}</div>
                 </c:if>
-                <c:if test="${not empty email.bccRecipients}">
+                <%-- BCC only visible to the sender --%>
+                <c:if test="${not empty email.bccRecipients && email.sender.email == sessionScope.userEmail}">
                     <div class="preview-recipient-line"><span class="recipient-label">Bcc:</span> ${email.bccRecipients}</div>
                 </c:if>
             </div>
@@ -106,6 +143,39 @@
                         <span class="attachment-size">${a.formattedSize}</span>
                     </div>
                 </a>
+            </c:forEach>
+        </div>
+    </div>
+</c:if>
+
+<%-- Conversation Thread / Email History --%>
+<c:if test="${not empty threadEmails}">
+    <div class="conversation-thread">
+        <div class="thread-header" onclick="toggleThread()">
+            <svg class="thread-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>${fn:length(threadEmails)} earlier message<c:if test="${fn:length(threadEmails) > 1}">s</c:if> in this conversation</span>
+            <svg class="thread-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+        <div class="thread-messages" id="threadMessages" style="display: none;">
+            <c:forEach items="${threadEmails}" var="threadEmail" varStatus="loop">
+                <div class="thread-message">
+                    <div class="thread-message-header">
+                        <div class="thread-avatar">
+                            ${fn:toUpperCase(fn:substring(threadEmail.sender.email, 0, 1))}
+                        </div>
+                        <div class="thread-sender-info">
+                            <span class="thread-sender">${threadEmail.sender.email}</span>
+                            <span class="thread-date">${fn:substring(threadEmail.createdAt, 0, 16)}</span>
+                        </div>
+                    </div>
+                    <div class="thread-message-body">
+                        ${threadEmail.bodyHtml}
+                    </div>
+                </div>
             </c:forEach>
         </div>
     </div>
