@@ -41,5 +41,20 @@ public class Attachment {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * Returns the file size in a human-readable format (KB, MB, etc.)
+     */
+    public String getFormattedSize() {
+        if (sizeBytes < 1024) {
+            return sizeBytes + " B";
+        } else if (sizeBytes < 1024 * 1024) {
+            return String.format("%.1f KB", sizeBytes / 1024.0);
+        } else if (sizeBytes < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", sizeBytes / (1024.0 * 1024));
+        } else {
+            return String.format("%.1f GB", sizeBytes / (1024.0 * 1024 * 1024));
+        }
+    }
+
     // getters/setters
 }

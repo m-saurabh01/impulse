@@ -39,13 +39,26 @@ public class EmailComposeService {
     @Transactional
     public void composeAndSend(ComposeEmailRequest req, SecurityUser sender) {
 
-        Email email = new Email();
-        email.setSender(userRepo.getById(sender.getId()));
+        Email email;
+        
+        // Check if updating existing draft
+        if (req.getDraftId() != null) {
+            email = emailRepo.findByIdAndSenderId(req.getDraftId(), sender.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Draft not found"));
+            // Clear existing recipients if sending (not saving as draft again)
+            if (!req.isDraft()) {
+                recipientRepo.deleteByEmailId(email.getId());
+            }
+        } else {
+            email = new Email();
+            email.setSender(userRepo.getById(sender.getId()));
+        }
+        
         email.setSubject(req.getSubject());
         email.setBodyHtml(req.getBodyHtml());
         email.setDraft(req.isDraft());
 
-        emailRepo.save(email); // ID generated here
+        emailRepo.save(email); // ID generated here for new emails
 
         // Thread handling
         if (req.getThreadId() != null) {
@@ -67,6 +80,16 @@ public class EmailComposeService {
         if (req.isDraft()) {
             return;
         }
+
+        // Create SENDER recipient record for the sender's "Sent" folder
+        User senderUser = userRepo.getById(sender.getId());
+        EmailRecipient senderRecipient = new EmailRecipient();
+        senderRecipient.setEmail(email);
+        senderRecipient.setUser(senderUser);
+        senderRecipient.setRecipientType("SENDER");
+        senderRecipient.setRead(true); // Sender has obviously read their own email
+        senderRecipient.setDeleted(false);
+        recipientRepo.save(senderRecipient);
 
         addRecipients(email, req.getTo(), "TO");
         addRecipients(email, req.getCc(), "CC");

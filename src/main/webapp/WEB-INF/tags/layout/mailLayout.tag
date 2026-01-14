@@ -1,35 +1,40 @@
 <%@ tag pageEncoding="UTF-8" %>
 <%@ attribute name="pageTitle" required="true" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>${pageTitle} | Pulse Mail</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${pageTitle} | Impulse</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/icons/new_icon.png">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/bootstrap.min.css">
+    <!-- CDN Resources -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/mail.css">
     <script defer src="${pageContext.request.contextPath}/assets/js/mail.js"></script>
     <script>
-const contextPath = "${pageContext.request.contextPath}";
-</script>
-    
+        const contextPath = "${pageContext.request.contextPath}";
+        const csrfToken = "${_csrf.token}";
+        const csrfHeader = "${_csrf.headerName}";
+    </script>
 </head>
-<body class="vh-100 d-flex flex-column">
+<body>
 
 <%@ include file="header.tag" %>
 
-<div class="flex-grow-1 d-flex">
-
+<div class="app-container">
     <%@ include file="sidebar.tag" %>
-
-    <main class="content flex-grow-1 p-3 overflow-auto">
+    
+    <main class="content">
         <jsp:doBody/>
     </main>
-
 </div>
 
 <%@ include file="footer.tag" %>
 
 </body>
-
 </html>

@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 public class ComposeEmailRequest {
 
+    private Long draftId;
     private String subject;
     private String bodyHtml;
 

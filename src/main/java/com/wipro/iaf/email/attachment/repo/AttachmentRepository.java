@@ -10,4 +10,6 @@ public interface AttachmentRepository
         extends JpaRepository<Attachment, Long> {
 
     List<Attachment> findByEmailId(Long emailId);
+
+    void deleteByEmailId(Long emailId);
 }

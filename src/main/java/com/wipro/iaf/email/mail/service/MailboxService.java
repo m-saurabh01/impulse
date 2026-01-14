@@ -35,9 +35,8 @@ public class MailboxService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Email> sent(Long userId, Pageable pageable) {
-        return emailRepo.findBySenderIdAndDraftFalseOrderByCreatedAtDesc(
-                userId, pageable);
+    public Page<EmailRecipient> sent(Long userId, Pageable pageable) {
+        return recipientRepo.findSent(userId, pageable);
     }
     
     @Transactional(readOnly = true)
@@ -72,17 +71,59 @@ public class MailboxService {
     @Transactional(readOnly = true)
     public Email findEmailForUser(Long emailId, Long userId) throws AccessDeniedException {
 
-        // sender can preview
-        Optional<Email> sent = emailRepo.findByIdAndSenderId(emailId, userId);
-        if (sent.isPresent()) {
-            return sent.get();
-        }
-
-        // recipient can preview
+        // Check if user has access via EmailRecipient (as sender, recipient, etc.)
         return recipientRepo.findByEmailIdAndUserId(emailId, userId)
             .map(EmailRecipient::getEmail)
             .orElseThrow(() ->
                 new AccessDeniedException("No access to email"));
+    }
+
+    @Transactional
+    public void markAsRead(Long emailId, Long userId) {
+        recipientRepo.findByEmailIdAndUserId(emailId, userId)
+            .ifPresent(r -> r.setRead(true));
+    }
+
+    /**
+     * Move an email to trash (works for both sent and received)
+     * Uses the unified EmailRecipient approach
+     */
+    @Transactional
+    public void moveToTrash(Long emailId, Long userId) {
+        recipientRepo.findByEmailIdAndUserId(emailId, userId)
+            .ifPresent(r -> {
+                r.setDeleted(true);
+                r.setDeletedAt(LocalDateTime.now());
+            });
+    }
+
+    /**
+     * Restore an email from trash (works for both sent and received)
+     */
+    @Transactional
+    public void restoreFromTrash(Long emailId, Long userId) {
+        recipientRepo.findByEmailIdAndUserId(emailId, userId)
+            .ifPresent(r -> {
+                r.setDeleted(false);
+                r.setDeletedAt(null);
+            });
+    }
+
+    /**
+     * Permanently delete an email (remove the EmailRecipient record)
+     */
+    @Transactional
+    public void permanentDelete(Long emailId, Long userId) {
+        recipientRepo.findByEmailIdAndUserId(emailId, userId)
+            .ifPresent(r -> recipientRepo.delete(r));
+    }
+
+    /**
+     * Empty all trash for a user (permanently delete all trashed emails)
+     */
+    @Transactional
+    public void emptyTrash(Long userId) {
+        recipientRepo.deleteAllTrashedByUserId(userId);
     }
 
 }
