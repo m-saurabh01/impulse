@@ -69,5 +69,38 @@ public class AttachmentService {
 		return attachmentRepo.findByEmailId(id);
 	}
 
-  
-}
+    /**
+     * Copy attachments from original email to new email (for forwarding)
+     */
+    @Transactional
+    public void copyAttachments(Email targetEmail, List<Long> sourceAttachmentIds) throws IOException {
+        if (sourceAttachmentIds == null || sourceAttachmentIds.isEmpty()) return;
+
+        Path targetDir = basePath.resolve(String.valueOf(targetEmail.getId()));
+        Files.createDirectories(targetDir);
+
+        for (Long attachmentId : sourceAttachmentIds) {
+            Attachment source = attachmentRepo.findById(attachmentId).orElse(null);
+            if (source == null) continue;
+
+            // Copy the file
+            Path sourceFile = basePath.resolve(String.valueOf(source.getEmail().getId()))
+                    .resolve(source.getStoredFilename());
+            
+            if (!Files.exists(sourceFile)) continue;
+
+            String newStoredName = UUID.randomUUID().toString();
+            Path targetFile = targetDir.resolve(newStoredName);
+            Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+
+            // Create new attachment record
+            Attachment newAttachment = new Attachment();
+            newAttachment.setEmail(targetEmail);
+            newAttachment.setOriginalFilename(source.getOriginalFilename());
+            newAttachment.setStoredFilename(newStoredName);
+            newAttachment.setMimeType(source.getMimeType());
+            newAttachment.setSizeBytes(source.getSizeBytes());
+
+            attachmentRepo.save(newAttachment);
+        }
+    }}

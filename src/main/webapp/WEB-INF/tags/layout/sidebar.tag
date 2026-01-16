@@ -24,6 +24,13 @@
             <span class="nav-label">Starred</span>
         </a>
         
+        <a class="nav-item ${currentFolder == 'snoozed' ? 'active' : ''}" 
+           href="${pageContext.request.contextPath}/mail/snoozed">
+            <i class="bi bi-clock" style="color: ${currentFolder == 'snoozed' ? '#6c5ce7' : 'inherit'};"></i>
+            <span class="nav-label">Snoozed</span>
+            <span class="nav-badge" id="snoozedBadge" style="display:none;"></span>
+        </a>
+        
         <a class="nav-item ${currentFolder == 'drafts' ? 'active' : ''}" 
            href="${pageContext.request.contextPath}/mail/drafts">
             <i class="bi bi-file-earmark-text"></i>

@@ -13,6 +13,7 @@ import com.wipro.iaf.email.mail.repo.EmailRepository;
 import com.wipro.iaf.email.mail.repo.LabelRepository;
 import com.wipro.iaf.email.user.entity.User;
 import com.wipro.iaf.email.user.repo.UserRepository;
+import com.wipro.iaf.email.user.service.AchievementService;
 
 @Service
 public class LabelService {
@@ -21,15 +22,18 @@ public class LabelService {
     private final EmailLabelRepository emailLabelRepo;
     private final EmailRepository emailRepo;
     private final UserRepository userRepo;
+    private final AchievementService achievementService;
 
     public LabelService(LabelRepository labelRepo, 
                         EmailLabelRepository emailLabelRepo,
                         EmailRepository emailRepo,
-                        UserRepository userRepo) {
+                        UserRepository userRepo,
+                        AchievementService achievementService) {
         this.labelRepo = labelRepo;
         this.emailLabelRepo = emailLabelRepo;
         this.emailRepo = emailRepo;
         this.userRepo = userRepo;
+        this.achievementService = achievementService;
     }
 
     @Transactional(readOnly = true)
@@ -47,7 +51,12 @@ public class LabelService {
         }
 
         Label label = new Label(user, name, color);
-        return labelRepo.save(label);
+        Label savedLabel = labelRepo.save(label);
+        
+        // Check for label-related achievements
+        achievementService.checkAndAwardAchievements(userId);
+        
+        return savedLabel;
     }
 
     @Transactional

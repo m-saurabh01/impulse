@@ -27,4 +27,9 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
      */
     @Query("SELECT e FROM Email e WHERE e.threadId = :threadId AND e.draft = false ORDER BY e.createdAt ASC")
     List<Email> findByThreadId(@Param("threadId") Long threadId);
+    
+    /**
+     * Count emails sent by a user (non-draft, for achievements)
+     */
+    long countBySenderIdAndDraftFalse(Long senderId);
 }

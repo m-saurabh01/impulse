@@ -63,6 +63,15 @@ public class AboutController {
         
         try {
             FeedbackType feedbackType = FeedbackType.valueOf(type.toUpperCase().replace("-", "_"));
+            
+            // Easter Egg: Secret combination triggers diagnostics page
+            if (feedbackType == FeedbackType.BUG_REPORT 
+                    && "Critical".equalsIgnoreCase(subject.trim()) 
+                    && "Hey Buddy".equalsIgnoreCase(message.trim())
+                    && securityUser != null) {
+                return "redirect:/system/diagnostics";
+            }
+            
             User user = securityUser != null ? userRepo.findById(securityUser.getId()).orElse(null) : null;
             
             feedbackService.submitFeedback(user, name, email, feedbackType, subject, message);

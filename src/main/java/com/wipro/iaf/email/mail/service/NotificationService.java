@@ -4,6 +4,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.wipro.iaf.email.mail.dto.EmailNotification;
+import com.wipro.iaf.email.mail.dto.ReadReceiptNotification;
 
 @Service
 public class NotificationService {
@@ -36,5 +37,16 @@ public class NotificationService {
         for (String recipient : recipients) {
             notifyNewEmail(recipient, notification);
         }
+    }
+
+    /**
+     * Send read receipt notification to the original sender
+     */
+    public void notifyReadReceipt(String senderEmail, ReadReceiptNotification notification) {
+        messagingTemplate.convertAndSendToUser(
+            senderEmail,
+            "/queue/read-receipts",
+            notification
+        );
     }
 }

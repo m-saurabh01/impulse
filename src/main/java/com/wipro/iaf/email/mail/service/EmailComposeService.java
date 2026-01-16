@@ -19,6 +19,7 @@ import com.wipro.iaf.email.mail.repo.EmailRepository;
 import com.wipro.iaf.email.security.SecurityUser;
 import com.wipro.iaf.email.user.entity.User;
 import com.wipro.iaf.email.user.repo.UserRepository;
+import com.wipro.iaf.email.user.service.AchievementService;
 
 @Service
 public class EmailComposeService {
@@ -32,19 +33,22 @@ public class EmailComposeService {
     private final UserRepository userRepo;
     private final AttachmentService attachmentService;
     private final NotificationService notificationService;
+    private final AchievementService achievementService;
 
     public EmailComposeService(
             EmailRepository emailRepo,
             EmailRecipientRepository recipientRepo,
             UserRepository userRepo,
             AttachmentService attachmentService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            AchievementService achievementService) {
 
         this.emailRepo = emailRepo;
         this.recipientRepo = recipientRepo;
         this.userRepo = userRepo;
         this.attachmentService = attachmentService;
         this.notificationService = notificationService;
+        this.achievementService = achievementService;
     }
 
     /**
@@ -142,6 +146,8 @@ public class EmailComposeService {
         // SAVE ATTACHMENTS HERE (IMPORTANT)
         try {
             attachmentService.saveAttachments(email, req.getAttachments());
+            // Copy forwarded attachments if present
+            attachmentService.copyAttachments(email, req.getForwardAttachmentIds());
         } catch (IOException ex) {
             throw new RuntimeException("Attachment upload failed", ex);
         }
@@ -175,6 +181,9 @@ public class EmailComposeService {
 
         // Send real-time notifications to all recipients
         sendNotifications(email, senderUser.getEmail(), allRecipients);
+        
+        // Check for achievements asynchronously (doesn't block response)
+        achievementService.checkAndAwardAchievements(sender.getId());
     }
 
     /**

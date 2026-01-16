@@ -1,6 +1,7 @@
 package com.wipro.iaf.email.mail.web;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -105,6 +106,12 @@ public class ComposeController {
                 forwardBody.append("<div>").append(originalEmail.getBodyHtml() != null ? originalEmail.getBodyHtml() : "").append("</div>");
                 forwardBody.append("</div>");
                 model.addAttribute("forwardBody", forwardBody.toString());
+                
+                // Include original attachments for forwarding
+                List<com.wipro.iaf.email.attachment.entity.Attachment> originalAttachments = attachmentRepo.findByEmailId(forward);
+                if (!originalAttachments.isEmpty()) {
+                    model.addAttribute("forwardAttachments", originalAttachments);
+                }
             }
         }
         

@@ -22,5 +22,8 @@ public class ComposeEmailRequest {
     private boolean readReceiptRequested;
 
     private List<MultipartFile> attachments;
+    
+    // IDs of attachments to copy when forwarding
+    private List<Long> forwardAttachmentIds;
   
 }

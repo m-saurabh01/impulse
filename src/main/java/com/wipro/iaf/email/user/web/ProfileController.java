@@ -1,5 +1,7 @@
 package com.wipro.iaf.email.user.web;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,9 @@ import com.wipro.iaf.email.security.SecurityUser;
 import com.wipro.iaf.email.user.dto.ChangePasswordRequest;
 import com.wipro.iaf.email.user.dto.ProfileUpdateRequest;
 import com.wipro.iaf.email.user.entity.User;
+import com.wipro.iaf.email.user.entity.UserAchievement;
+import com.wipro.iaf.email.user.service.AchievementService;
+import com.wipro.iaf.email.user.service.AchievementService.AchievementWithStatus;
 import com.wipro.iaf.email.user.service.ProfileService;
 
 @Controller
@@ -21,9 +26,11 @@ import com.wipro.iaf.email.user.service.ProfileService;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final AchievementService achievementService;
 
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(ProfileService profileService, AchievementService achievementService) {
         this.profileService = profileService;
+        this.achievementService = achievementService;
     }
 
     /**
@@ -84,6 +91,53 @@ public class ProfileController {
     }
 
     /**
+     * Get all achievements with status (unlocked/locked)
+     */
+    @GetMapping("/achievements")
+    @ResponseBody
+    public ResponseEntity<List<AchievementWithStatus>> getAchievements(
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        List<AchievementWithStatus> achievements = 
+            achievementService.getAchievementsWithStatus(securityUser.getId());
+        return ResponseEntity.ok(achievements);
+    }
+
+    /**
+     * Get only unlocked achievements for badge display
+     */
+    @GetMapping("/achievements/unlocked")
+    @ResponseBody
+    public ResponseEntity<List<UserAchievement>> getUnlockedAchievements(
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        List<UserAchievement> unlocked = 
+            achievementService.getUserAchievements(securityUser.getId());
+        return ResponseEntity.ok(unlocked);
+    }
+
+    /**
+     * Get count and total points for achievements (for profile summary)
+     */
+    @GetMapping("/achievements/summary")
+    @ResponseBody
+    public ResponseEntity<AchievementSummary> getAchievementSummary(
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        List<UserAchievement> unlocked = 
+            achievementService.getUserAchievements(securityUser.getId());
+        
+        int totalPoints = unlocked.stream()
+            .mapToInt(ua -> ua.getAchievement().getPoints())
+            .sum();
+        
+        int totalAchievements = achievementService.getAchievementsWithStatus(securityUser.getId()).size();
+        
+        return ResponseEntity.ok(new AchievementSummary(
+            unlocked.size(),
+            totalAchievements,
+            totalPoints
+        ));
+    }
+
+    /**
      * Simple response class for user info
      */
     private static class UserInfoResponse {
@@ -100,5 +154,24 @@ public class ProfileController {
         public String getEmail() { return email; }
         public String getDisplayName() { return displayName; }
         public String getSignature() { return signature; }
+    }
+
+    /**
+     * Response class for achievement summary
+     */
+    private static class AchievementSummary {
+        private final int unlockedCount;
+        private final int totalCount;
+        private final int totalPoints;
+
+        public AchievementSummary(int unlockedCount, int totalCount, int totalPoints) {
+            this.unlockedCount = unlockedCount;
+            this.totalCount = totalCount;
+            this.totalPoints = totalPoints;
+        }
+
+        public int getUnlockedCount() { return unlockedCount; }
+        public int getTotalCount() { return totalCount; }
+        public int getTotalPoints() { return totalPoints; }
     }
 }

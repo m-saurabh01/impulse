@@ -92,3 +92,7 @@
 </c:choose>
 
 </layout:mailLayout>
+<script>
+// Store the current label ID for remove-from-label functionality
+window.currentLabelId = ${label.id};
+</script>

@@ -4,6 +4,7 @@ package com.wipro.iaf.email.mail.service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wipro.iaf.email.mail.dto.ReadReceiptNotification;
 import com.wipro.iaf.email.mail.entity.Email;
 import com.wipro.iaf.email.mail.entity.EmailRecipient;
 import com.wipro.iaf.email.mail.entity.EmailRecipientId;
@@ -24,11 +26,14 @@ public class MailboxService {
 
     private final EmailRecipientRepository recipientRepo;
     private final EmailRepository emailRepo;
+    private final NotificationService notificationService;
 
     public MailboxService(EmailRecipientRepository recipientRepo,
-                          EmailRepository emailRepo) {
+                          EmailRepository emailRepo,
+                          NotificationService notificationService) {
         this.recipientRepo = recipientRepo;
         this.emailRepo = emailRepo;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -195,7 +200,21 @@ public class MailboxService {
                 // Check if read receipt is requested and not already sent
                 if (r.getEmail().isReadReceiptRequested() && !r.isReadReceiptSent()) {
                     r.setReadReceiptSent(true);
-                    // TODO: Send notification to sender about read receipt
+                    recipientRepo.save(r);
+                    
+                    // Send WebSocket notification to the original sender
+                    Email email = r.getEmail();
+                    String senderEmail = email.getSender().getEmail();
+                    String readerEmail = r.getUser().getEmail();
+                    
+                    ReadReceiptNotification notification = new ReadReceiptNotification(
+                        emailId,
+                        readerEmail,
+                        email.getSubject() != null ? email.getSubject() : "(No subject)",
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a"))
+                    );
+                    
+                    notificationService.notifyReadReceipt(senderEmail, notification);
                 }
             });
     }
@@ -214,6 +233,38 @@ public class MailboxService {
     @Transactional(readOnly = true)
     public long countUnreadInbox(Long userId) {
         return recipientRepo.countUnreadInbox(userId);
+    }
+
+    /**
+     * Snooze an email until a specific time
+     */
+    @Transactional
+    public void snoozeEmail(Long emailId, Long userId, LocalDateTime snoozedUntil) {
+        recipientRepo.updateSnooze(emailId, userId, snoozedUntil);
+    }
+
+    /**
+     * Unsnooze an email (clear the snooze time)
+     */
+    @Transactional
+    public void unsnoozeEmail(Long emailId, Long userId) {
+        recipientRepo.updateSnooze(emailId, userId, null);
+    }
+
+    /**
+     * Get snoozed emails for a user
+     */
+    @Transactional(readOnly = true)
+    public Page<EmailRecipient> snoozed(Long userId, Pageable pageable) {
+        return recipientRepo.findSnoozed(userId, LocalDateTime.now(), pageable);
+    }
+
+    /**
+     * Count snoozed emails for a user
+     */
+    @Transactional(readOnly = true)
+    public long countSnoozed(Long userId) {
+        return recipientRepo.countSnoozed(userId, LocalDateTime.now());
     }
 
 }

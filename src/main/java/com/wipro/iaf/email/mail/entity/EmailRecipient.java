@@ -60,5 +60,22 @@ public class EmailRecipient {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "snoozed_until")
+    private LocalDateTime snoozedUntil;
+
+    /**
+     * Check if the email is currently snoozed.
+     */
+    public boolean isSnoozed() {
+        return snoozedUntil != null && LocalDateTime.now().isBefore(snoozedUntil);
+    }
+
+    /**
+     * Check if a snoozed email has woken up (snooze expired).
+     */
+    public boolean isSnoozeExpired() {
+        return snoozedUntil != null && LocalDateTime.now().isAfter(snoozedUntil);
+    }
+
     
 }

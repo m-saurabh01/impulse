@@ -185,6 +185,25 @@ document.addEventListener('DOMContentLoaded', function() {
             <textarea id="bodyHtml" name="bodyHtml">${draft.bodyHtml}</textarea>
         </div>
         
+        <%-- Quick Replies Section --%>
+        <div class="quick-replies-section">
+            <div class="quick-replies-header">
+                <button type="button" class="quick-replies-toggle" onclick="toggleQuickReplies()">
+                    <i class="bi bi-lightning-fill"></i>
+                    <span>Quick Replies</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
+                <button type="button" class="quick-reply-add-btn" onclick="showAddQuickReplyModal()" title="Add new quick reply">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+            <div class="quick-replies-list" id="quickRepliesList" style="display: none;">
+                <div class="quick-replies-loading">
+                    <i class="bi bi-hourglass-split"></i> Loading...
+                </div>
+            </div>
+        </div>
+        
         <div class="compose-options">
             <label class="compose-option-label">
                 <input type="checkbox" name="readReceiptRequested" value="true" 
@@ -208,7 +227,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>Attach files</span>
                 <input type="file" name="attachments" multiple style="display: none;">
             </label>
-            <div id="fileList" class="file-list"></div>
+            <div id="fileList" class="file-list">
+                <%-- Display forwarded attachments --%>
+                <c:if test="${not empty forwardAttachments}">
+                    <c:forEach items="${forwardAttachments}" var="fa">
+                        <div class="file-item forward-attachment" data-attachment-id="${fa.id}">
+                            <input type="hidden" name="forwardAttachmentIds" value="${fa.id}">
+                            <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span class="file-name">${fa.originalFilename}</span>
+                            <span class="file-size">${fa.formattedSize}</span>
+                            <button type="button" class="file-remove" onclick="removeForwardAttachment(this)" title="Remove attachment">&times;</button>
+                        </div>
+                    </c:forEach>
+                </c:if>
+            </div>
         </div>
         
         <div class="compose-actions">
@@ -461,14 +496,35 @@ function discardDraft(draftId) {
     }
 }
 
+function removeForwardAttachment(btn) {
+    var item = btn.closest('.forward-attachment');
+    if (item) {
+        item.remove();
+    }
+}
+
 document.querySelector('input[name="attachments"]').addEventListener('change', function(e) {
     var fileList = document.getElementById('fileList');
-    fileList.innerHTML = '';
+    // Keep existing forward attachments, just add new files
+    var existingForward = fileList.querySelectorAll('.forward-attachment');
+    var newFilesHtml = '';
     for (var i = 0; i < this.files.length; i++) {
         var file = this.files[i];
-        var div = document.createElement('div');
-        div.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
-        fileList.appendChild(div);
+        newFilesHtml += '<div class="file-item new-attachment">' +
+            '<svg class="file-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>' +
+            '<polyline points="14 2 14 8 20 8"></polyline>' +
+            '</svg>' +
+            '<span class="file-name">' + file.name + '</span>' +
+            '<span class="file-size">' + Math.round(file.size / 1024) + ' KB</span>' +
+            '</div>';
+    }
+    // Insert new files after forward attachments
+    var lastForward = existingForward.length > 0 ? existingForward[existingForward.length - 1] : null;
+    if (lastForward) {
+        lastForward.insertAdjacentHTML('afterend', newFilesHtml);
+    } else {
+        fileList.innerHTML = newFilesHtml;
     }
 });
 
@@ -521,6 +577,201 @@ document.addEventListener('DOMContentLoaded', function() {
         window.directBodyContent = directBodyEl.innerHTML.trim();
     }
 });
+
+// Quick Replies functionality
+var quickRepliesLoaded = false;
+var quickRepliesData = [];
+
+function toggleQuickReplies() {
+    var list = document.getElementById('quickRepliesList');
+    var toggle = document.querySelector('.quick-replies-toggle .toggle-icon');
+    
+    if (list.style.display === 'none') {
+        list.style.display = 'block';
+        toggle.style.transform = 'rotate(180deg)';
+        if (!quickRepliesLoaded) {
+            loadQuickReplies();
+        }
+    } else {
+        list.style.display = 'none';
+        toggle.style.transform = 'rotate(0deg)';
+    }
+}
+
+function loadQuickReplies() {
+    var list = document.getElementById('quickRepliesList');
+    
+    fetch(contextPath + '/mail/quick-replies', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        quickRepliesData = data;
+        quickRepliesLoaded = true;
+        renderQuickReplies();
+    })
+    .catch(function(err) {
+        list.innerHTML = '<div class="quick-replies-empty">Failed to load quick replies</div>';
+    });
+}
+
+function renderQuickReplies() {
+    var list = document.getElementById('quickRepliesList');
+    
+    if (quickRepliesData.length === 0) {
+        list.innerHTML = 
+            '<div class="quick-replies-empty">' +
+                '<i class="bi bi-lightning"></i>' +
+                '<p>No quick replies yet</p>' +
+                '<button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddQuickReplyModal()">' +
+                    'Create your first quick reply' +
+                '</button>' +
+            '</div>';
+        return;
+    }
+    
+    var html = '';
+    quickRepliesData.forEach(function(qr) {
+        html += 
+            '<div class="quick-reply-item" data-id="' + qr.id + '">' +
+                '<div class="quick-reply-content" onclick="insertQuickReply(' + qr.id + ')">' +
+                    '<div class="quick-reply-title">' + escapeHtml(qr.title) + '</div>' +
+                    '<div class="quick-reply-preview">' + escapeHtml(qr.content.substring(0, 80)) + (qr.content.length > 80 ? '...' : '') + '</div>' +
+                '</div>' +
+                '<div class="quick-reply-actions">' +
+                    '<button type="button" onclick="editQuickReply(' + qr.id + ')" title="Edit"><i class="bi bi-pencil"></i></button>' +
+                    '<button type="button" onclick="deleteQuickReply(' + qr.id + ')" title="Delete"><i class="bi bi-trash"></i></button>' +
+                '</div>' +
+            '</div>';
+    });
+    list.innerHTML = html;
+}
+
+function insertQuickReply(id) {
+    var qr = quickRepliesData.find(function(item) { return item.id === id; });
+    if (!qr) return;
+    
+    if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
+        tinymce.activeEditor.execCommand('mceInsertContent', false, qr.content);
+    }
+}
+
+function showAddQuickReplyModal() {
+    showQuickReplyModal(null, '', '');
+}
+
+function editQuickReply(id) {
+    var qr = quickRepliesData.find(function(item) { return item.id === id; });
+    if (!qr) return;
+    showQuickReplyModal(id, qr.title, qr.content);
+}
+
+function showQuickReplyModal(id, title, content) {
+    // Remove existing modal
+    var existing = document.getElementById('quickReplyModal');
+    if (existing) existing.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'quickReplyModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = 
+        '<div class="quick-reply-modal">' +
+            '<div class="quick-reply-modal-header">' +
+                '<i class="bi bi-lightning-fill" style="color: #6c5ce7;"></i>' +
+                '<span>' + (id ? 'Edit Quick Reply' : 'New Quick Reply') + '</span>' +
+                '<button class="close-btn" onclick="closeQuickReplyModal()"><i class="bi bi-x"></i></button>' +
+            '</div>' +
+            '<div class="quick-reply-modal-body">' +
+                '<div class="form-group">' +
+                    '<label>Title</label>' +
+                    '<input type="text" id="qrTitle" class="form-control" placeholder="e.g., Thank you response" value="' + escapeHtml(title) + '">' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label>Content</label>' +
+                    '<textarea id="qrContent" class="form-control" rows="4" placeholder="Enter your quick reply text...">' + escapeHtml(content) + '</textarea>' +
+                '</div>' +
+            '</div>' +
+            '<div class="quick-reply-modal-footer">' +
+                '<button type="button" class="btn btn-secondary" onclick="closeQuickReplyModal()">Cancel</button>' +
+                '<button type="button" class="btn btn-primary" onclick="saveQuickReply(' + (id || 'null') + ')">Save</button>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.appendChild(modal);
+    document.getElementById('qrTitle').focus();
+}
+
+function closeQuickReplyModal() {
+    var modal = document.getElementById('quickReplyModal');
+    if (modal) modal.remove();
+}
+
+function saveQuickReply(id) {
+    var title = document.getElementById('qrTitle').value.trim();
+    var content = document.getElementById('qrContent').value.trim();
+    
+    if (!title || !content) {
+        alert('Please enter both title and content');
+        return;
+    }
+    
+    var url = contextPath + '/mail/quick-replies' + (id ? '/' + id : '');
+    var method = id ? 'PUT' : 'POST';
+    
+    var headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    if (typeof csrfToken !== 'undefined' && typeof csrfHeader !== 'undefined') {
+        headers[csrfHeader] = csrfToken;
+    }
+    
+    fetch(url, {
+        method: method,
+        headers: headers,
+        body: 'title=' + encodeURIComponent(title) + '&content=' + encodeURIComponent(content)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        closeQuickReplyModal();
+        quickRepliesLoaded = false;
+        loadQuickReplies();
+    })
+    .catch(function(err) {
+        alert('Failed to save quick reply');
+    });
+}
+
+function deleteQuickReply(id) {
+    if (!confirm('Delete this quick reply?')) return;
+    
+    var headers = { 'X-Requested-With': 'XMLHttpRequest' };
+    if (typeof csrfToken !== 'undefined' && typeof csrfHeader !== 'undefined') {
+        headers[csrfHeader] = csrfToken;
+    }
+    
+    fetch(contextPath + '/mail/quick-replies/' + id, {
+        method: 'DELETE',
+        headers: headers
+    })
+    .then(function(response) {
+        if (response.ok) {
+            quickRepliesLoaded = false;
+            loadQuickReplies();
+        }
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 
 </layout:mailLayout>

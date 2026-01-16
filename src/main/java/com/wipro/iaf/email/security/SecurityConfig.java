@@ -28,7 +28,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .logoutUrl("/logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"))
-                .csrf(withDefaults());
+                .csrf(withDefaults())
+                // Security Headers
+                .headers(headers -> headers
+                        .xssProtection(xss -> xss.block(true))
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; frame-src 'self';"))
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .contentTypeOptions(withDefaults())
+                )
+                // Session Security
+                .sessionManagement(session -> session
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(3)
+                        .maxSessionsPreventsLogin(false));
 	}
 
 }

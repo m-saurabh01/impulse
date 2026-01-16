@@ -13,4 +13,9 @@ public interface LabelRepository extends JpaRepository<Label, Long> {
     boolean existsByUserIdAndNameIgnoreCase(Long userId, String name);
 
     void deleteByIdAndUserId(Long id, Long userId);
+    
+    /**
+     * Count labels created by a user (for achievements)
+     */
+    long countByUserId(Long userId);
 }

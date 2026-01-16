@@ -1,5 +1,6 @@
 package com.wipro.iaf.email.mail.repo;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -167,5 +168,64 @@ public interface EmailRecipientRepository
 	    "AND r.read = false"
 	)
 	long countUnreadInbox(@Param("userId") Long userId);
+
+	/**
+	 * Count starred emails for a user (for achievements)
+	 */
+	@Query("SELECT COUNT(r) FROM EmailRecipient r WHERE r.user.id = :userId AND r.starred = true")
+	long countStarredByUserId(@Param("userId") Long userId);
+
+	/**
+	 * Update snooze time for an email
+	 */
+	@Modifying
+	@Query("UPDATE EmailRecipient r SET r.snoozedUntil = :snoozedUntil WHERE r.email.id = :emailId AND r.user.id = :userId")
+	void updateSnooze(@Param("emailId") Long emailId, @Param("userId") Long userId, @Param("snoozedUntil") LocalDateTime snoozedUntil);
+
+	/**
+	 * Get snoozed emails for a user (where snooze is still active)
+	 */
+	@Query(
+	    value =
+	        "SELECT r " +
+	        "FROM EmailRecipient r " +
+	        "JOIN FETCH r.email e " +
+	        "JOIN FETCH e.sender s " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.recipientType != 'SENDER' " +
+	        "AND e.draft = false " +
+	        "AND r.snoozedUntil IS NOT NULL " +
+	        "AND r.snoozedUntil > :now " +
+	        "ORDER BY r.snoozedUntil ASC",
+	    countQuery =
+	        "SELECT COUNT(r) " +
+	        "FROM EmailRecipient r " +
+	        "WHERE r.user.id = :userId " +
+	        "AND r.deleted = false " +
+	        "AND r.recipientType != 'SENDER' " +
+	        "AND r.email.draft = false " +
+	        "AND r.snoozedUntil IS NOT NULL " +
+	        "AND r.snoozedUntil > :now"
+	)
+	Page<EmailRecipient> findSnoozed(
+	        @Param("userId") Long userId,
+	        @Param("now") LocalDateTime now,
+	        Pageable pageable);
+
+	/**
+	 * Count snoozed emails for a user
+	 */
+	@Query(
+	    "SELECT COUNT(r) " +
+	    "FROM EmailRecipient r " +
+	    "WHERE r.user.id = :userId " +
+	    "AND r.deleted = false " +
+	    "AND r.recipientType != 'SENDER' " +
+	    "AND r.email.draft = false " +
+	    "AND r.snoozedUntil IS NOT NULL " +
+	    "AND r.snoozedUntil > :now"
+	)
+	long countSnoozed(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
 }
