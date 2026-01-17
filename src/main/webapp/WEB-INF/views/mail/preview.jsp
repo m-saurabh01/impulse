@@ -15,23 +15,36 @@
                     <span>${recipient.starred ? 'Starred' : 'Star'}</span>
                 </button>
             </c:if>
-            <%-- Reply buttons - only show for inbox/sent (not trash or draft) --%>
+            <%-- Reply buttons - only show for inbox/sent (not trash or draft) and not for deleted users --%>
             <c:if test="${source == 'inbox' || source == 'sent'}">
-                <button class="action-btn action-btn-primary" onclick="replyToEmail(${email.id}, false)" title="Reply">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 17 4 12 9 7"></polyline>
-                        <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
-                    </svg>
-                    <span>Reply</span>
-                </button>
-                <button class="action-btn action-btn-secondary" onclick="replyToEmail(${email.id}, true)" title="Reply All">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 17 4 12 9 7"></polyline>
-                        <polyline points="15 17 10 12 15 7"></polyline>
-                        <path d="M20 18v-2a4 4 0 0 0-4-4H10"></path>
-                    </svg>
-                    <span>Reply All</span>
-                </button>
+                <c:choose>
+                    <c:when test="${email.sender.deleted}">
+                        <button class="action-btn action-btn-disabled" disabled title="Cannot reply - this user no longer exists">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                            </svg>
+                            <span>Reply unavailable</span>
+                        </button>
+                    </c:when>
+                    <c:otherwise>
+                        <button class="action-btn action-btn-primary" onclick="replyToEmail(${email.id}, false)" title="Reply">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                            </svg>
+                            <span>Reply</span>
+                        </button>
+                        <button class="action-btn action-btn-secondary" onclick="replyToEmail(${email.id}, true)" title="Reply All">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 17 4 12 9 7"></polyline>
+                                <polyline points="15 17 10 12 15 7"></polyline>
+                                <path d="M20 18v-2a4 4 0 0 0-4-4H10"></path>
+                            </svg>
+                            <span>Reply All</span>
+                        </button>
+                    </c:otherwise>
+                </c:choose>
                 <button class="action-btn action-btn-secondary" onclick="forwardEmail(${email.id})" title="Forward">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 17 20 12 15 7"></polyline>
@@ -75,11 +88,23 @@
     <h2 class="preview-subject">${not empty email.subject ? email.subject : '(No subject)'}</h2>
     
     <div class="preview-sender-row">
-        <div class="preview-avatar">
-            ${fn:toUpperCase(fn:substring(email.sender.email, 0, 1))}
+        <div class="preview-avatar ${email.sender.deleted ? 'deleted-user' : ''}">
+            <c:choose>
+                <c:when test="${email.sender.deleted}">
+                    <i class="bi bi-person-x"></i>
+                </c:when>
+                <c:otherwise>
+                    ${fn:toUpperCase(fn:substring(email.sender.email, 0, 1))}
+                </c:otherwise>
+            </c:choose>
         </div>
         <div class="preview-sender-info">
-            <div class="preview-sender-name">${email.sender.email}</div>
+            <div class="preview-sender-name">
+                ${email.sender.email}
+                <c:if test="${email.sender.deleted}">
+                    <span class="deleted-badge"><i class="bi bi-exclamation-circle"></i> Account deleted</span>
+                </c:if>
+            </div>
             <div class="preview-recipients">
                 <c:if test="${not empty email.toRecipients}">
                     <div class="preview-recipient-line"><span class="recipient-label">To:</span> ${email.toRecipients}</div>
@@ -164,8 +189,15 @@
             <c:forEach items="${threadEmails}" var="threadEmail" varStatus="loop">
                 <div class="thread-message">
                     <div class="thread-message-header">
-                        <div class="thread-avatar">
-                            ${fn:toUpperCase(fn:substring(threadEmail.sender.email, 0, 1))}
+                        <div class="thread-avatar ${threadEmail.sender.deleted ? 'deleted-user' : ''}">
+                            <c:choose>
+                                <c:when test="${threadEmail.sender.deleted}">
+                                    <i class="bi bi-person-x"></i>
+                                </c:when>
+                                <c:otherwise>
+                                    ${fn:toUpperCase(fn:substring(threadEmail.sender.email, 0, 1))}
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                         <div class="thread-sender-info">
                             <span class="thread-sender">${threadEmail.sender.email}</span>

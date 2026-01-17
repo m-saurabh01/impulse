@@ -21,6 +21,31 @@ import com.wipro.iaf.email.user.service.AchievementService;
 import com.wipro.iaf.email.user.service.AchievementService.AchievementWithStatus;
 import com.wipro.iaf.email.user.service.ProfileService;
 
+/**
+ * Controller for user profile management and achievement display.
+ * 
+ * <p>Handles all user profile-related operations including viewing and updating
+ * profile settings, changing passwords, and managing achievements. All endpoints
+ * require authentication.</p>
+ * 
+ * <p>Endpoints:
+ * <ul>
+ *   <li>{@code GET /profile} - Display profile settings page</li>
+ *   <li>{@code POST /profile/update} - Update display name and signature</li>
+ *   <li>{@code POST /profile/changePassword} - Change user password</li>
+ *   <li>{@code GET /profile/info} - Get user info as JSON (AJAX)</li>
+ *   <li>{@code GET /profile/achievements} - Get all achievements with unlock status</li>
+ *   <li>{@code GET /profile/achievements/unlocked} - Get only unlocked achievements</li>
+ *   <li>{@code GET /profile/achievements/summary} - Get achievement count and points</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see ProfileService
+ * @see AchievementService
+ */
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
@@ -28,13 +53,23 @@ public class ProfileController {
     private final ProfileService profileService;
     private final AchievementService achievementService;
 
+    /**
+     * Constructs the ProfileController with required service dependencies.
+     * 
+     * @param profileService     service for profile data operations
+     * @param achievementService service for achievement operations
+     */
     public ProfileController(ProfileService profileService, AchievementService achievementService) {
         this.profileService = profileService;
         this.achievementService = achievementService;
     }
 
     /**
-     * Show profile page
+     * Displays the user profile settings page.
+     * 
+     * @param securityUser the authenticated user from Spring Security
+     * @param model        the model to add attributes for the view
+     * @return the view name for the profile settings page
      */
     @GetMapping
     public String showProfile(@AuthenticationPrincipal SecurityUser securityUser,
@@ -74,6 +109,25 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/profile";
+    }
+
+    /**
+     * Permanently delete user account
+     */
+    @PostMapping("/deleteAccount")
+    public String deleteAccount(@AuthenticationPrincipal SecurityUser securityUser,
+                                @org.springframework.web.bind.annotation.RequestParam String password,
+                                RedirectAttributes redirectAttributes,
+                                javax.servlet.http.HttpServletRequest request) {
+        try {
+            profileService.deleteAccount(securityUser.getId(), password);
+            // Invalidate session and logout
+            request.getSession().invalidate();
+            return "redirect:/login?accountDeleted=true";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/profile";
+        }
     }
 
     /**

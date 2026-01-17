@@ -43,7 +43,5 @@
     </main>
 </div>
 
-<%@ include file="footer.tag" %>
-
 </body>
 </html>

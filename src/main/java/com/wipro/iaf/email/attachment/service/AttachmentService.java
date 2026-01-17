@@ -18,12 +18,33 @@ import com.wipro.iaf.email.attachment.entity.Attachment;
 import com.wipro.iaf.email.attachment.repo.AttachmentRepository;
 import com.wipro.iaf.email.mail.entity.Email;
 
+/**
+ * Service for managing email attachments.
+ * 
+ * <p>Handles saving, retrieving, and copying attachments. Files are
+ * stored on the filesystem with UUID-based names to prevent conflicts
+ * and security issues.</p>
+ * 
+ * <p>Storage structure: {base-path}/{emailId}/{uuid}</p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see Attachment
+ * @see AttachmentRepository
+ */
 @Service
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepo;
     private final Path basePath;
 
+    /**
+     * Constructs the AttachmentService with required dependencies.
+     * 
+     * @param attachmentRepo repository for attachment operations
+     * @param baseDir        the base directory for attachment storage
+     */
     public AttachmentService(
             AttachmentRepository attachmentRepo,
             @Value("${mail.attachments.base-path}") String baseDir) {
@@ -32,6 +53,16 @@ public class AttachmentService {
         this.basePath = Paths.get(baseDir);
     }
 
+    /**
+     * Saves attachments for an email.
+     * 
+     * <p>Creates a directory for the email if needed, saves each file
+     * with a UUID-based name, and creates database records.</p>
+     * 
+     * @param email the email to attach files to
+     * @param files list of multipart files to save
+     * @throws IOException if file writing fails
+     */
     @Transactional
     public void saveAttachments(Email email, List<MultipartFile> files)
             throws IOException {
@@ -65,12 +96,25 @@ public class AttachmentService {
         }
     }
 
+    /**
+     * Finds all attachments for an email.
+     * 
+     * @param id the email ID
+     * @return list of attachments for the email
+     */
 	public List<Attachment> findByEmailId(Long id) {
 		return attachmentRepo.findByEmailId(id);
 	}
 
     /**
-     * Copy attachments from original email to new email (for forwarding)
+     * Copies attachments from source email to target email.
+     * 
+     * <p>Used when forwarding emails to include original attachments.
+     * Creates new file copies and database records.</p>
+     * 
+     * @param targetEmail         the email to copy attachments to
+     * @param sourceAttachmentIds list of attachment IDs to copy
+     * @throws IOException if file copying fails
      */
     @Transactional
     public void copyAttachments(Email targetEmail, List<Long> sourceAttachmentIds) throws IOException {

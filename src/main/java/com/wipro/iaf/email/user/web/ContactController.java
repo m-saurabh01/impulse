@@ -15,18 +15,53 @@ import com.wipro.iaf.email.security.SecurityUser;
 import com.wipro.iaf.email.user.entity.Contact;
 import com.wipro.iaf.email.user.service.ContactService;
 
+/**
+ * Controller for managing user contacts (address book).
+ * 
+ * <p>Provides endpoints for CRUD operations on contacts and search functionality
+ * for email autocomplete. Each user has their own private address book with
+ * contacts only accessible by them.</p>
+ * 
+ * <p>Endpoints:
+ * <ul>
+ *   <li>{@code GET /contacts} - Display contacts page</li>
+ *   <li>{@code GET /contacts/list} - Get all contacts as JSON (for UI)</li>
+ *   <li>{@code GET /contacts/search?q=} - Search contacts for autocomplete</li>
+ *   <li>{@code POST /contacts/create} - Create a new contact</li>
+ *   <li>{@code POST /contacts/update} - Update existing contact</li>
+ *   <li>{@code POST /contacts/delete} - Delete a contact</li>
+ *   <li>{@code POST /contacts/toggleFavorite} - Toggle favorite status</li>
+ *   <li>{@code GET /contacts/{id}} - Get single contact details</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see Contact
+ * @see ContactService
+ */
 @Controller
 @RequestMapping("/contacts")
 public class ContactController {
 
     private final ContactService contactService;
 
+    /**
+     * Constructs the ContactController with required service dependency.
+     * 
+     * @param contactService service for contact data operations
+     */
     public ContactController(ContactService contactService) {
         this.contactService = contactService;
     }
 
     /**
-     * Contacts page
+     * Displays the contacts page with all user contacts.
+     * 
+     * @param model the model to add attributes for the view
+     * @param user  the authenticated user from Spring Security
+     * @return the view name for the contacts list page
      */
     @GetMapping
     public String contacts(Model model, @AuthenticationPrincipal SecurityUser user) {
@@ -35,7 +70,12 @@ public class ContactController {
     }
 
     /**
-     * Get all contacts as JSON (for autocomplete)
+     * Retrieves all contacts for the current user as JSON.
+     * 
+     * <p>Used by the frontend to populate the contacts list in the UI.</p>
+     * 
+     * @param user the authenticated user from Spring Security
+     * @return ResponseEntity containing list of contact maps with id, email, displayName, etc.
      */
     @GetMapping("/list")
     @ResponseBody
@@ -46,7 +86,14 @@ public class ContactController {
     }
 
     /**
-     * Search contacts (for autocomplete)
+     * Searches contacts by email or display name for autocomplete.
+     * 
+     * <p>Performs partial, case-insensitive matching. Results prioritize
+     * favorites and are sorted alphabetically.</p>
+     * 
+     * @param q    the search query
+     * @param user the authenticated user
+     * @return ResponseEntity containing list of matching contacts
      */
     @GetMapping("/search")
     @ResponseBody
@@ -58,7 +105,15 @@ public class ContactController {
     }
 
     /**
-     * Create a new contact
+     * Creates a new contact in the user's address book.
+     * 
+     * @param email       the email address of the contact (required)
+     * @param displayName optional display name
+     * @param phone       optional phone number
+     * @param company     optional company name
+     * @param notes       optional notes about the contact
+     * @param user        the authenticated user
+     * @return ResponseEntity containing the created contact or error message
      */
     @PostMapping("/create")
     @ResponseBody

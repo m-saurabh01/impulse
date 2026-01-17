@@ -24,8 +24,27 @@ import com.wipro.iaf.email.security.SecurityUser;
 import com.wipro.iaf.email.user.entity.User;
 import com.wipro.iaf.email.user.repo.UserRepository;
 
-
-
+/**
+ * Controller for email composition operations.
+ * 
+ * <p>Handles composing new emails, replying, reply all, forwarding,
+ * draft management, and email sending. Supports conversation threading
+ * and user signatures.</p>
+ * 
+ * <p>Endpoints:
+ * <ul>
+ *   <li>{@code GET /mail/compose} - Display compose form (new, reply, forward, draft)</li>
+ *   <li>{@code POST /mail/send} - Send or save email as draft</li>
+ *   <li>{@code POST /mail/discard} - Discard a draft</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see EmailComposeService
+ * @see Email
+ */
 @Controller
 @RequestMapping("/mail")
 public class ComposeController {
@@ -35,6 +54,14 @@ public class ComposeController {
     private final AttachmentRepository attachmentRepo;
     private final UserRepository userRepo;
 
+    /**
+     * Constructs the ComposeController with required dependencies.
+     * 
+     * @param composeService service for email composition
+     * @param emailRepo      repository for email operations
+     * @param attachmentRepo repository for attachment operations
+     * @param userRepo       repository for user operations
+     */
     public ComposeController(EmailComposeService composeService, 
                              EmailRepository emailRepo,
                              AttachmentRepository attachmentRepo,
@@ -45,6 +72,30 @@ public class ComposeController {
         this.userRepo = userRepo;
     }
 
+    /**
+     * Displays the email compose form.
+     * 
+     * <p>Supports multiple modes:
+     * <ul>
+     *   <li>New email - with optional pre-filled to/subject/body</li>
+     *   <li>Draft editing - loads existing draft by id</li>
+     *   <li>Reply - sets recipient and quoted body</li>
+     *   <li>Reply All - includes CC recipients</li>
+     *   <li>Forward - includes original content and attachments</li>
+     * </ul>
+     * </p>
+     * 
+     * @param id       optional draft email ID to continue editing
+     * @param replyTo  optional email ID to reply to
+     * @param replyAll true to include all original recipients
+     * @param forward  optional email ID to forward
+     * @param to       optional pre-filled recipient
+     * @param subject  optional pre-filled subject
+     * @param body     optional pre-filled body
+     * @param user     the authenticated user
+     * @param model    the model to add attributes for the view
+     * @return the view name for the compose page
+     */
     @GetMapping("/compose")
     public String compose(@RequestParam(required = false) Long id,
                           @RequestParam(required = false) Long replyTo,
@@ -196,6 +247,17 @@ public class ComposeController {
         return "mail/compose";
     }
 
+    /**
+     * Sends an email or saves it as a draft.
+     * 
+     * <p>If the request has draft=true, saves as draft. Otherwise,
+     * validates and sends the email to all recipients.</p>
+     * 
+     * @param req                the compose email request with recipients and content
+     * @param user               the authenticated sender
+     * @param redirectAttributes attributes for redirect flash messages
+     * @return redirect to drafts page if saving draft, or inbox if sent
+     */
     @PostMapping("/send")
     public String send(@ModelAttribute ComposeEmailRequest req,
                        @AuthenticationPrincipal SecurityUser user,
@@ -217,6 +279,15 @@ public class ComposeController {
         return "redirect:/mail/inbox";
     }
 
+    /**
+     * Discards a draft email permanently.
+     * 
+     * <p>Deletes the draft and all associated attachments.</p>
+     * 
+     * @param id   the draft email ID to discard
+     * @param user the authenticated user
+     * @return redirect to drafts page
+     */
     @PostMapping("/discard")
     @Transactional
     public String discard(@RequestParam Long id,

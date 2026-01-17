@@ -27,6 +27,20 @@
                 You have been logged out successfully
             </div>
         </c:if>
+        
+        <c:if test="${param.accountDeleted != null}">
+            <div class="auth-success">
+                <i class="bi bi-check-circle"></i>
+                Your account has been permanently deleted
+            </div>
+        </c:if>
+        
+        <c:if test="${param.registered != null}">
+            <div class="auth-success">
+                <i class="bi bi-check-circle"></i>
+                Account created successfully! Please sign in
+            </div>
+        </c:if>
 
         <form method="post" action="${pageContext.request.contextPath}/login" class="auth-form">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -42,11 +56,17 @@
 
             <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input class="form-control" 
-                       type="password" 
-                       name="password" 
-                       placeholder="Enter your password"
-                       required>
+                <div class="password-wrapper">
+                    <input class="form-control" 
+                           type="password" 
+                           name="password" 
+                           id="passwordInput"
+                           placeholder="Enter your password"
+                           required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('passwordInput', this)" aria-label="Show password">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">
@@ -59,5 +79,53 @@
             </div>
         </form>
     </div>
+
+    <style>
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .form-control {
+            padding-right: 45px;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-toggle:hover {
+            color: #0078d4;
+        }
+        .password-toggle i {
+            font-size: 18px;
+        }
+    </style>
+
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+                button.setAttribute('aria-label', 'Hide password');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+                button.setAttribute('aria-label', 'Show password');
+            }
+        }
+    </script>
 
 </layout:authLayout>

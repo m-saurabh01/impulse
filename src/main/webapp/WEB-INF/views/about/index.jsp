@@ -117,25 +117,134 @@
                 <h3>Reply & Forward</h3>
                 <p>Reply, Reply All, or Forward emails with a single click. Original message is quoted automatically.</p>
             </div>
+
+            <!-- Snooze -->
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #00cec9, #81ecec);">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <h3>Snooze Emails</h3>
+                <p>Snooze emails to deal with later. Choose preset times or custom date. Snoozed emails return to inbox when time expires.</p>
+            </div>
+
+            <!-- Drafts -->
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #fdcb6e, #e17055);">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <h3>Auto-Save Drafts</h3>
+                <p>Never lose your work. Emails are auto-saved as drafts. Access them anytime from the Drafts folder to continue editing.</p>
+            </div>
+
+            <!-- Trash Management -->
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #636e72, #2d3436);">
+                    <i class="bi bi-trash3-fill"></i>
+                </div>
+                <h3>Trash & Restore</h3>
+                <p>Deleted emails go to Trash. Restore them anytime or permanently delete. Empty trash to free up space.</p>
+            </div>
+
+            <!-- Attachments -->
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #0984e3, #00cec9);">
+                    <i class="bi bi-paperclip"></i>
+                </div>
+                <h3>File Attachments</h3>
+                <p>Attach multiple files up to 10MB each. Supports all common file types. Download attachments with a single click.</p>
+            </div>
+
+            <!-- Profile & Settings -->
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #a29bfe, #dfe6e9);">
+                    <i class="bi bi-gear-fill"></i>
+                </div>
+                <h3>Profile & Settings</h3>
+                <p>Customize your experience. Update profile picture, change password, manage signature, and configure preferences.</p>
+            </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="about-section">
-        <h2><i class="bi bi-lightning-fill"></i> Quick Actions</h2>
+        <h2><i class="bi bi-lightning-fill"></i> Quick Actions Guide</h2>
+        <p class="section-intro">Master these shortcuts to boost your productivity</p>
         
-        <div class="quick-actions-list">
-            <div class="quick-action">
-                <span class="action-key"><i class="bi bi-three-dots-vertical"></i></span>
-                <span class="action-desc">Click the 3-dot menu on any email for quick actions: Reply, Star, Add Label, Delete</span>
+        <div class="quick-actions-grid">
+            <!-- Email Actions -->
+            <div class="quick-action-card">
+                <h4><i class="bi bi-envelope-fill"></i> Email Actions</h4>
+                <div class="quick-actions-list">
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-three-dots-vertical"></i></span>
+                        <span class="action-desc">3-dot menu for Reply, Star, Label, Snooze, Delete</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-star"></i></span>
+                        <span class="action-desc">Click star icon to toggle starred status</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-clock"></i></span>
+                        <span class="action-desc">Snooze to hide email and get reminded later</span>
+                    </div>
+                </div>
             </div>
-            <div class="quick-action">
-                <span class="action-key"><i class="bi bi-check2-square"></i></span>
-                <span class="action-desc">Select multiple emails using checkboxes for bulk operations</span>
+
+            <!-- Bulk Operations -->
+            <div class="quick-action-card">
+                <h4><i class="bi bi-ui-checks"></i> Bulk Operations</h4>
+                <div class="quick-actions-list">
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-check2-square"></i></span>
+                        <span class="action-desc">Select multiple emails with checkboxes</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-trash"></i></span>
+                        <span class="action-desc">Delete selected emails at once</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-envelope-open"></i></span>
+                        <span class="action-desc">Mark all selected as read/unread</span>
+                    </div>
+                </div>
             </div>
-            <div class="quick-action">
-                <span class="action-key"><i class="bi bi-search"></i></span>
-                <span class="action-desc">Use the search bar to find emails by sender, subject, or content</span>
+
+            <!-- Search & Filter -->
+            <div class="quick-action-card">
+                <h4><i class="bi bi-funnel-fill"></i> Search & Filter</h4>
+                <div class="quick-actions-list">
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-search"></i></span>
+                        <span class="action-desc">Search by sender, subject, or content</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-tag"></i></span>
+                        <span class="action-desc">Click labels in sidebar to filter by label</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-star-fill"></i></span>
+                        <span class="action-desc">Use Starred folder to find important emails</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compose Tips -->
+            <div class="quick-action-card">
+                <h4><i class="bi bi-pencil-fill"></i> Compose Tips</h4>
+                <div class="quick-actions-list">
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-at"></i></span>
+                        <span class="action-desc">Type to see contact suggestions in To/CC fields</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-check2-all"></i></span>
+                        <span class="action-desc">Enable "Request Read Receipt" for important emails</span>
+                    </div>
+                    <div class="quick-action">
+                        <span class="action-key"><i class="bi bi-save"></i></span>
+                        <span class="action-desc">Click "Save Draft" to save and continue later</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -143,12 +252,65 @@
     <!-- Developer Section -->
     <div class="about-section developer-section">
         <h2><i class="bi bi-code-slash"></i> Developer</h2>
-        <div class="developer-card">
-            <div class="developer-avatar">SM</div>
-            <div class="developer-info">
-                <h3>Saurabh Mishra</h3>
-                <p>Full Stack Developer</p>
-                <p class="developer-quote">"Building software that makes a difference"</p>
+        <div class="developer-showcase">
+            <div class="dev-card">
+                <div class="dev-card-glow"></div>
+                <div class="dev-card-content">
+                    <div class="dev-avatar-container">
+                        <div class="dev-avatar-ring"></div>
+                        <div class="dev-avatar">
+                            <!-- Animated Developer Character -->
+                            <div class="dev-character">
+                                <div class="char-head">
+                                    <div class="char-hair"></div>
+                                    <div class="char-face">
+                                        <div class="char-eyes">
+                                            <div class="char-eye left"></div>
+                                            <div class="char-eye right"></div>
+                                        </div>
+                                        <div class="char-mouth"></div>
+                                    </div>
+                                </div>
+                                <div class="char-body">
+                                    <div class="char-shirt"></div>
+                                    <div class="char-arm left-arm"></div>
+                                    <div class="char-arm right-arm"></div>
+                                </div>
+                                <div class="char-laptop">
+                                    <div class="laptop-screen">
+                                        <div class="code-line"></div>
+                                        <div class="code-line"></div>
+                                        <div class="code-line short"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dev-info">
+                        <h3 class="dev-name">Saurabh Mishra</h3>
+                        <p class="dev-role">
+                            <i class="bi bi-braces"></i>
+                            Full Stack Developer
+                        </p>
+                        <div class="dev-quote">
+                            <i class="bi bi-quote"></i>
+                            Building software that makes a difference
+                        </div>
+                        <div class="dev-tech-stack">
+                            <span class="tech-tag"><i class="bi bi-cup-hot-fill"></i> Java</span>
+                            <span class="tech-tag"><i class="bi bi-bootstrap-fill"></i> Spring Boot</span>
+                            <span class="tech-tag"><i class="bi bi-database-fill"></i> MySQL</span>
+                            <span class="tech-tag"><i class="bi bi-filetype-js"></i> JavaScript</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dev-card-particles">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -399,80 +561,549 @@
 }
 
 /* Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.quick-action-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.12);
+    border-color: #6c5ce7;
+}
+
+.quick-action-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #6c5ce7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-action-card h4 i {
+    color: #6c5ce7;
+}
+
 .quick-actions-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .quick-action {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: #f8f9fa;
-    border-radius: 12px;
+    gap: 12px;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+    background: #f0f0ff;
+    transform: translateX(4px);
 }
 
 .action-key {
-    width: 40px;
-    height: 40px;
-    background: white;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    color: #6c5ce7;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    font-size: 14px;
+    color: white;
     flex-shrink: 0;
 }
 
 .action-desc {
-    font-size: 14px;
+    font-size: 13px;
     color: #495057;
+    line-height: 1.4;
 }
 
-/* Developer Section */
-.developer-card {
+/* ============================================
+   DEVELOPER SECTION - Creative Animated Design
+   ============================================ */
+.developer-showcase {
+    perspective: 1000px;
+}
+
+.dev-card {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 24px;
+    padding: 40px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    box-shadow: 0 10px 40px rgba(108, 92, 231, 0.2);
+}
+
+.dev-card:hover {
+    transform: translateY(-8px) rotateX(2deg);
+    box-shadow: 0 20px 60px rgba(108, 92, 231, 0.35);
+}
+
+.dev-card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        from 0deg,
+        transparent,
+        rgba(108, 92, 231, 0.1),
+        transparent,
+        rgba(162, 155, 254, 0.1),
+        transparent
+    );
+    animation: rotateGlow 8s linear infinite;
+}
+
+@keyframes rotateGlow {
+    100% { transform: rotate(360deg); }
+}
+
+.dev-card-content {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 24px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
-    border-radius: 16px;
-    padding: 32px;
-    color: white;
+    gap: 32px;
 }
 
-.developer-avatar {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+.dev-avatar-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.dev-avatar-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        #6c5ce7,
+        #a29bfe,
+        #fd79a8,
+        #fdcb6e,
+        #00b894,
+        #0984e3,
+        #6c5ce7
+    );
+    animation: spinRing 4s linear infinite;
+    opacity: 0.7;
+}
+
+@keyframes spinRing {
+    100% { transform: rotate(360deg); }
+}
+
+.dev-avatar-ring::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 50%;
+}
+
+.dev-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* ============================================
+   ANIMATED DEVELOPER CHARACTER
+   ============================================ */
+.dev-character {
+    position: relative;
+    width: 70px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Head */
+.char-head {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    z-index: 3;
+}
+
+.char-hair {
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    right: 2px;
+    height: 18px;
+    background: #2d3436;
+    border-radius: 50% 50% 0 0;
+    z-index: 2;
+}
+
+.char-hair::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: -3px;
+    width: 8px;
+    height: 12px;
+    background: #2d3436;
+    border-radius: 50% 0 0 50%;
+}
+
+.char-face {
+    position: absolute;
+    top: 8px;
+    left: 3px;
+    right: 3px;
+    bottom: 0;
+    background: #ffeaa7;
+    border-radius: 0 0 50% 50%;
+    z-index: 1;
+}
+
+.char-eyes {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 8px;
+}
+
+.char-eye {
+    width: 5px;
+    height: 5px;
+    background: #2d3436;
+    border-radius: 50%;
+    animation: blink 4s ease-in-out infinite;
+}
+
+.char-eye.right {
+    animation-delay: 0.1s;
+}
+
+@keyframes blink {
+    0%, 45%, 55%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.1); }
+}
+
+.char-mouth {
+    width: 8px;
+    height: 4px;
+    background: #e17055;
+    border-radius: 0 0 10px 10px;
+    margin: 4px auto 0;
+    animation: smile 3s ease-in-out infinite;
+}
+
+@keyframes smile {
+    0%, 100% { width: 8px; }
+    50% { width: 10px; }
+}
+
+/* Body */
+.char-body {
+    position: relative;
+    margin-top: -4px;
+    z-index: 2;
+}
+
+.char-shirt {
+    width: 32px;
+    height: 22px;
+    background: linear-gradient(135deg, #0984e3, #74b9ff);
+    border-radius: 8px 8px 0 0;
+    position: relative;
+}
+
+.char-shirt::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Arms */
+.char-arm {
+    position: absolute;
+    width: 8px;
+    height: 18px;
+    background: linear-gradient(135deg, #0984e3, #74b9ff);
+    border-radius: 4px;
+    top: 2px;
+}
+
+.left-arm {
+    left: -6px;
+    transform-origin: top center;
+    animation: typeLeft 0.8s ease-in-out infinite;
+}
+
+.right-arm {
+    right: -6px;
+    transform-origin: top center;
+    animation: typeRight 0.8s ease-in-out infinite;
+    animation-delay: 0.4s;
+}
+
+@keyframes typeLeft {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(-25deg); }
+}
+
+@keyframes typeRight {
+    0%, 100% { transform: rotate(15deg); }
+    50% { transform: rotate(25deg); }
+}
+
+/* Laptop */
+.char-laptop {
+    position: absolute;
+    bottom: 0;
+    width: 44px;
+    height: 12px;
+    background: #636e72;
+    border-radius: 2px 2px 4px 4px;
+    z-index: 1;
+}
+
+.laptop-screen {
+    position: absolute;
+    bottom: 100%;
+    left: 2px;
+    right: 2px;
+    height: 28px;
+    background: #2d3436;
+    border-radius: 3px 3px 0 0;
+    padding: 4px;
+    transform-origin: bottom center;
+    animation: screenGlow 2s ease-in-out infinite;
+}
+
+@keyframes screenGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(116, 185, 255, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(116, 185, 255, 0.6); }
+}
+
+.code-line {
+    height: 3px;
+    background: #00b894;
+    border-radius: 1px;
+    margin-bottom: 3px;
+    animation: codeLine 1.5s ease-in-out infinite;
+}
+
+.code-line:nth-child(1) {
+    width: 80%;
+    animation-delay: 0s;
+}
+
+.code-line:nth-child(2) {
+    width: 60%;
+    background: #fdcb6e;
+    animation-delay: 0.3s;
+}
+
+.code-line:nth-child(3) {
+    width: 40%;
+    background: #74b9ff;
+    animation-delay: 0.6s;
+}
+
+@keyframes codeLine {
+    0%, 100% { opacity: 0.6; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.1); }
+}
+
+.dev-status-dot {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: #00b894;
+    border-radius: 50%;
+    border: 3px solid #1a1a2e;
+    z-index: 3;
+    animation: statusBlink 2s ease-in-out infinite;
+}
+
+@keyframes statusBlink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.6); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(0, 184, 148, 0); }
+}
+
+.dev-info {
+    color: white;
+    flex: 1;
+}
+
+.dev-name {
     font-size: 28px;
     font-weight: 700;
-    flex-shrink: 0;
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, #ffffff, #a29bfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    background-size: 200% 100%;
 }
 
-.developer-info h3 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 0 0 4px;
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-.developer-info p {
-    margin: 0;
-    opacity: 0.8;
+.dev-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #a29bfe;
+    margin: 0 0 16px;
+    padding: 6px 14px;
+    background: rgba(108, 92, 231, 0.15);
+    border-radius: 20px;
+    border: 1px solid rgba(108, 92, 231, 0.3);
 }
 
-.developer-quote {
-    font-style: italic;
-    margin-top: 8px !important;
-    opacity: 0.6 !important;
+.dev-role i {
     font-size: 14px;
+}
+
+.dev-quote {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.dev-quote i {
+    color: #6c5ce7;
+    font-size: 24px;
+    opacity: 0.5;
+}
+
+.dev-tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tech-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.tech-tag:hover {
+    background: rgba(108, 92, 231, 0.3);
+    border-color: rgba(108, 92, 231, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+}
+
+.tech-tag i {
+    font-size: 14px;
+    color: #a29bfe;
+}
+
+/* Floating Particles */
+.dev-card-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(108, 92, 231, 0.6);
+    border-radius: 50%;
+    animation: floatParticle 6s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 20%; top: 80%; animation-delay: 1s; }
+.particle:nth-child(3) { left: 60%; top: 10%; animation-delay: 2s; }
+.particle:nth-child(4) { left: 80%; top: 60%; animation-delay: 3s; }
+.particle:nth-child(5) { left: 90%; top: 30%; animation-delay: 4s; }
+
+@keyframes floatParticle {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-30px) scale(1.5);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .dev-card-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .dev-name {
+        font-size: 24px;
+    }
+    
+    .dev-quote {
+        justify-content: center;
+    }
+    
+    .dev-tech-stack {
+        justify-content: center;
+    }
 }
 
 /* Feedback Form */

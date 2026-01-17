@@ -20,6 +20,29 @@ import com.wipro.iaf.email.security.SecurityUser;
 import com.wipro.iaf.email.user.entity.User;
 import com.wipro.iaf.email.user.repo.UserRepository;
 
+/**
+ * Controller for the About page and feedback management.
+ * 
+ * <p>Handles displaying application information, feature descriptions,
+ * and user feedback submission. Also provides admin functionality
+ * for managing feedback submissions.</p>
+ * 
+ * <p>Endpoints:
+ * <ul>
+ *   <li>{@code GET /about} - About Impulse page</li>
+ *   <li>{@code POST /about/feedback} - Submit feedback</li>
+ *   <li>{@code GET /about/feedback/admin} - Admin feedback list (admin only)</li>
+ *   <li>{@code POST /about/feedback/markRead} - Mark feedback as read (admin only)</li>
+ *   <li>{@code POST /about/feedback/delete} - Delete feedback (admin only)</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see FeedbackService
+ * @see Feedback
+ */
 @Controller
 @RequestMapping("/about")
 public class AboutController {
@@ -27,13 +50,26 @@ public class AboutController {
     private final FeedbackService feedbackService;
     private final UserRepository userRepo;
 
+    /**
+     * Constructs the AboutController with required dependencies.
+     * 
+     * @param feedbackService service for feedback operations
+     * @param userRepo        repository for user operations
+     */
     public AboutController(FeedbackService feedbackService, UserRepository userRepo) {
         this.feedbackService = feedbackService;
         this.userRepo = userRepo;
     }
 
     /**
-     * About Impulse page - shows features and feedback form
+     * Displays the About Impulse page.
+     * 
+     * <p>Shows application features, version information, and a feedback form.
+     * If the user is authenticated, pre-fills their name and email.</p>
+     * 
+     * @param model the model to add attributes for the view
+     * @param user  the authenticated user (may be null)
+     * @return the view name for the about page
      */
     @GetMapping
     public String aboutPage(Model model, @AuthenticationPrincipal SecurityUser user) {
@@ -49,7 +85,22 @@ public class AboutController {
     }
 
     /**
-     * Submit feedback
+     * Submits user feedback.
+     * 
+     * <p>Accepts feedback of various types (feature request, bug report,
+     * suggestion, etc.) and stores it for admin review.</p>
+     * 
+     * <p>Contains an Easter egg: submitting a bug report with subject
+     * "Critical" and message "Hey Buddy" redirects to diagnostics.</p>
+     * 
+     * @param name               submitter's name
+     * @param email              submitter's email
+     * @param type               feedback type (feature-request, bug-report, etc.)
+     * @param subject            feedback subject
+     * @param message            feedback message content
+     * @param securityUser       the authenticated user (may be null)
+     * @param redirectAttributes attributes for redirect flash messages
+     * @return redirect to about page with success/error message
      */
     @PostMapping("/feedback")
     public String submitFeedback(
@@ -84,7 +135,17 @@ public class AboutController {
     }
 
     /**
-     * Admin page to view all feedback (only for admin/developer)
+     * Displays the admin feedback management page.
+     * 
+     * <p>Lists all feedback submissions with pagination and optional
+     * filtering by type. Only accessible to users with ROLE_ADMIN.</p>
+     * 
+     * @param page  the page number (0-based)
+     * @param size  the page size
+     * @param type  optional filter by feedback type
+     * @param model the model to add attributes for the view
+     * @param user  the authenticated user
+     * @return the view name for feedback admin, or redirect if not admin
      */
     @GetMapping("/feedback/admin")
     public String feedbackAdmin(
@@ -116,7 +177,13 @@ public class AboutController {
     }
 
     /**
-     * Mark feedback as read
+     * Marks a feedback item as read.
+     * 
+     * <p>Only accessible to users with ROLE_ADMIN.</p>
+     * 
+     * @param id   the feedback ID to mark as read
+     * @param user the authenticated user
+     * @return 200 OK on success, 403 if not admin
      */
     @PostMapping("/feedback/markRead")
     @ResponseBody
@@ -132,7 +199,13 @@ public class AboutController {
     }
 
     /**
-     * Delete feedback
+     * Deletes a feedback item.
+     * 
+     * <p>Only accessible to users with ROLE_ADMIN.</p>
+     * 
+     * @param id   the feedback ID to delete
+     * @param user the authenticated user
+     * @return 200 OK on success, 403 if not admin
      */
     @PostMapping("/feedback/delete")
     @ResponseBody

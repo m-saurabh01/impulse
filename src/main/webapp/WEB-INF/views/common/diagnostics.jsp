@@ -4,6 +4,11 @@
 <layout:mailLayout pageTitle="System Diagnostics">
 
 <div class="diagnostics-container">
+    <div class="diagnostics-top-nav">
+        <a href="${pageContext.request.contextPath}/about" class="back-link">
+            <i class="bi bi-arrow-left"></i> Back to About
+        </a>
+    </div>
     <div class="diagnostics-header">
         <div class="diagnostics-title">
             <i class="bi bi-controller"></i>
@@ -52,6 +57,46 @@
             <p>Break all the bricks with the ball!</p>
             <div class="game-controls"><i class="bi bi-keyboard"></i> Arrows / <i class="bi bi-mouse"></i> Mouse</div>
         </div>
+
+        <!-- Flappy Bird Game -->
+        <div class="game-card" onclick="openGame('flappy')">
+            <div class="game-icon" style="background: linear-gradient(135deg, #00cec9, #81ecec);">
+                <i class="bi bi-twitter"></i>
+            </div>
+            <h3>Flappy Bird</h3>
+            <p>Tap to fly through the pipes!</p>
+            <div class="game-controls"><i class="bi bi-keyboard"></i> Space / <i class="bi bi-mouse"></i> Click</div>
+        </div>
+
+        <!-- Tetris Game -->
+        <div class="game-card" onclick="openGame('tetris')">
+            <div class="game-icon" style="background: linear-gradient(135deg, #fd79a8, #e84393);">
+                <i class="bi bi-boxes"></i>
+            </div>
+            <h3>Tetris</h3>
+            <p>Stack blocks, clear lines, don't fill up!</p>
+            <div class="game-controls"><i class="bi bi-keyboard"></i> Arrow Keys + Space</div>
+        </div>
+
+        <!-- Whack-a-Mole Game -->
+        <div class="game-card" onclick="openGame('whackamole')">
+            <div class="game-icon" style="background: linear-gradient(135deg, #a55eea, #8854d0);">
+                <i class="bi bi-hammer"></i>
+            </div>
+            <h3>Whack-a-Mole</h3>
+            <p>Whack the moles before they hide!</p>
+            <div class="game-controls"><i class="bi bi-mouse"></i> Click to Whack</div>
+        </div>
+
+        <!-- Typing Speed Game -->
+        <div class="game-card" onclick="openGame('typing')">
+            <div class="game-icon" style="background: linear-gradient(135deg, #0984e3, #74b9ff);">
+                <i class="bi bi-keyboard-fill"></i>
+            </div>
+            <h3>Type Racer</h3>
+            <p>Test your typing speed and accuracy!</p>
+            <div class="game-controls"><i class="bi bi-keyboard"></i> Type the Words</div>
+        </div>
     </div>
 
     <!-- Game Container -->
@@ -69,9 +114,6 @@
 
     <div class="diagnostics-footer">
         <p><i class="bi bi-shield-check"></i> This is our little secret!</p>
-        <a href="${pageContext.request.contextPath}/about" class="back-link">
-            <i class="bi bi-arrow-left"></i> Back to About
-        </a>
     </div>
 </div>
 
@@ -80,6 +122,27 @@
     width: 100%;
     padding: 40px 24px;
     box-sizing: border-box;
+}
+
+.diagnostics-top-nav {
+    margin-bottom: 24px;
+}
+
+.diagnostics-top-nav .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c5ce7;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 10px 16px;
+    background: rgba(108, 92, 231, 0.1);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.diagnostics-top-nav .back-link:hover {
+    background: rgba(108, 92, 231, 0.2);
 }
 
 .diagnostics-header {
@@ -236,6 +299,7 @@
 
 .diagnostics-footer p {
     margin: 0 0 16px;
+    padding-bottom: 16px;
 }
 
 .back-link {
@@ -318,6 +382,171 @@
 .puzzle-cell[data-value="512"] { background: #edc850; color: #f9f6f2; font-size: 20px; }
 .puzzle-cell[data-value="1024"] { background: #edc53f; color: #f9f6f2; font-size: 16px; }
 .puzzle-cell[data-value="2048"] { background: #edc22e; color: #f9f6f2; font-size: 16px; }
+
+/* Whack-a-Mole Styles */
+.whack-container {
+    padding: 20px;
+    text-align: center;
+    width: 400px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.whack-timer {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.whack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    gap: 12px;
+    justify-content: center;
+}
+
+.whack-hole {
+    width: 110px;
+    height: 110px;
+    background: linear-gradient(145deg, #5d4e37, #3d3225);
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: inset 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.whack-hole .mole {
+    position: absolute;
+    bottom: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(145deg, #8b7355, #6b5344);
+    border-radius: 50% 50% 40% 40%;
+    transition: bottom 0.15s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.whack-hole .mole .mole-face,
+.whack-hole .mole .mole-hit {
+    font-size: 32px;
+    color: #2d3436;
+}
+
+.whack-hole .mole .mole-face {
+    display: block;
+}
+
+.whack-hole .mole .mole-hit {
+    display: none;
+}
+
+.whack-hole.active .mole {
+    bottom: 25px;
+}
+
+.whack-hole.whacked .mole .mole-face {
+    display: none;
+}
+
+.whack-hole.whacked .mole .mole-hit {
+    display: block;
+    color: #e74c3c;
+    animation: hitShake 0.3s ease;
+}
+
+@keyframes hitShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+/* Typing Game Styles */
+.typing-container {
+    padding: 15px;
+    width: 400px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.typing-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.typing-stats .stat {
+    background: rgba(108, 92, 231, 0.2);
+    padding: 12px 24px;
+    border-radius: 12px;
+    color: white;
+    font-size: 18px;
+}
+
+.typing-stats .stat span {
+    font-weight: bold;
+    font-size: 24px;
+    color: #a29bfe;
+}
+
+.typing-display {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    min-height: 100px;
+    font-size: 20px;
+    line-height: 2;
+    color: rgba(255,255,255,0.6);
+    text-align: left;
+}
+
+.typing-display .word {
+    padding: 4px 2px;
+    border-radius: 4px;
+}
+
+.typing-display .word.current {
+    background: rgba(108, 92, 231, 0.5);
+    color: white;
+}
+
+.typing-display .word.typed {
+    color: #00b894;
+}
+
+.typing-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 20px;
+    border: 2px solid #6c5ce7;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    outline: none;
+}
+
+.typing-input:focus {
+    border-color: #a29bfe;
+    box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.3);
+}
+
+.typing-hint {
+    margin-top: 12px;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+}
 </style>
 
 <script>
@@ -340,6 +569,14 @@ function openGame(game) {
         initMemory(wrapper);
     } else if (game === 'breakout') {
         initBreakout(wrapper);
+    } else if (game === 'flappy') {
+        initFlappy(wrapper);
+    } else if (game === 'tetris') {
+        initTetris(wrapper);
+    } else if (game === 'whackamole') {
+        initWhackaMole(wrapper);
+    } else if (game === 'typing') {
+        initTyping(wrapper);
     }
 }
 
@@ -628,8 +865,8 @@ function initMemory(wrapper) {
 // =====================
 function initBreakout(wrapper) {
     var canvas = document.createElement('canvas');
-    canvas.width = 480;
-    canvas.height = 320;
+    canvas.width = 400;
+    canvas.height = 400;
     wrapper.appendChild(canvas);
     
     var ctx = canvas.getContext('2d');
@@ -773,6 +1010,520 @@ function initBreakout(wrapper) {
     }
     
     gameInterval = setInterval(draw, 16);
+}
+
+// =====================
+// FLAPPY BIRD GAME
+// =====================
+function initFlappy(wrapper) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 400;
+    wrapper.appendChild(canvas);
+    
+    var ctx = canvas.getContext('2d');
+    var bird = { x: 80, y: 250, velocity: 0, gravity: 0.5, jump: -8, size: 20 };
+    var pipes = [];
+    var pipeWidth = 60;
+    var pipeGap = 140;
+    var score = 0;
+    var gameOver = false;
+    var frameCount = 0;
+    
+    function createPipe() {
+        var minHeight = 50;
+        var maxHeight = canvas.height - pipeGap - minHeight;
+        var height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+        pipes.push({
+            x: canvas.width,
+            topHeight: height,
+            bottomY: height + pipeGap,
+            passed: false
+        });
+    }
+    
+    function flap() {
+        if (gameOver) {
+            // Restart
+            bird.y = 250;
+            bird.velocity = 0;
+            pipes = [];
+            score = 0;
+            gameOver = false;
+            frameCount = 0;
+        } else {
+            bird.velocity = bird.jump;
+        }
+    }
+    
+    document.onkeydown = function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            flap();
+        }
+    };
+    
+    canvas.onclick = flap;
+    
+    function draw() {
+        // Background gradient
+        var gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#87CEEB');
+        gradient.addColorStop(1, '#98FB98');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        if (!gameOver) {
+            // Update bird
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+            
+            // Create pipes
+            frameCount++;
+            if (frameCount % 90 === 0) {
+                createPipe();
+            }
+            
+            // Update pipes
+            for (var i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].x -= 3;
+                
+                // Score
+                if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
+                    pipes[i].passed = true;
+                    score++;
+                }
+                
+                // Remove off-screen pipes
+                if (pipes[i].x + pipeWidth < 0) {
+                    pipes.splice(i, 1);
+                }
+            }
+            
+            // Check collisions
+            if (bird.y + bird.size > canvas.height || bird.y - bird.size < 0) {
+                gameOver = true;
+            }
+            
+            for (var i = 0; i < pipes.length; i++) {
+                var p = pipes[i];
+                if (bird.x + bird.size > p.x && bird.x - bird.size < p.x + pipeWidth) {
+                    if (bird.y - bird.size < p.topHeight || bird.y + bird.size > p.bottomY) {
+                        gameOver = true;
+                    }
+                }
+            }
+        }
+        
+        // Draw pipes
+        ctx.fillStyle = '#2ecc71';
+        for (var i = 0; i < pipes.length; i++) {
+            var p = pipes[i];
+            // Top pipe
+            ctx.fillRect(p.x, 0, pipeWidth, p.topHeight);
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(p.x - 5, p.topHeight - 30, pipeWidth + 10, 30);
+            ctx.fillStyle = '#2ecc71';
+            // Bottom pipe
+            ctx.fillRect(p.x, p.bottomY, pipeWidth, canvas.height - p.bottomY);
+            ctx.fillStyle = '#27ae60';
+            ctx.fillRect(p.x - 5, p.bottomY, pipeWidth + 10, 30);
+            ctx.fillStyle = '#2ecc71';
+        }
+        
+        // Draw bird
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
+        ctx.fill();
+        // Eye
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(bird.x + 8, bird.y - 5, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(bird.x + 10, bird.y - 5, 3, 0, Math.PI * 2);
+        ctx.fill();
+        // Beak
+        ctx.fillStyle = '#e67e22';
+        ctx.beginPath();
+        ctx.moveTo(bird.x + bird.size, bird.y);
+        ctx.lineTo(bird.x + bird.size + 12, bird.y + 3);
+        ctx.lineTo(bird.x + bird.size, bird.y + 8);
+        ctx.fill();
+        
+        // Score
+        document.getElementById('gameScore').textContent = 'Score: ' + score;
+        
+        // Game over
+        if (gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width/2, canvas.height/2 - 20);
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2 + 20);
+            ctx.fillText('Click or Space to restart', canvas.width/2, canvas.height/2 + 50);
+        }
+    }
+    
+    gameInterval = setInterval(draw, 20);
+}
+
+// =====================
+// TETRIS GAME
+// =====================
+function initTetris(wrapper) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 400;
+    wrapper.appendChild(canvas);
+    
+    var ctx = canvas.getContext('2d');
+    var blockSize = 20;
+    var cols = 10;
+    var rows = 20;
+    var offsetX = (canvas.width - cols * blockSize) / 2; // Center horizontally
+    var board = [];
+    var score = 0;
+    var gameOver = false;
+    
+    // Initialize board
+    for (var y = 0; y < rows; y++) {
+        board[y] = [];
+        for (var x = 0; x < cols; x++) {
+            board[y][x] = 0;
+        }
+    }
+    
+    var shapes = [
+        [[1,1,1,1]], // I
+        [[1,1],[1,1]], // O
+        [[0,1,0],[1,1,1]], // T
+        [[1,0,0],[1,1,1]], // L
+        [[0,0,1],[1,1,1]], // J
+        [[0,1,1],[1,1,0]], // S
+        [[1,1,0],[0,1,1]]  // Z
+    ];
+    
+    var colors = ['#00d2d3', '#feca57', '#a55eea', '#ff9f43', '#54a0ff', '#5f27cd', '#ee5253'];
+    
+    var currentPiece = null;
+    var currentX = 0;
+    var currentY = 0;
+    var currentColor = '';
+    
+    function newPiece() {
+        var idx = Math.floor(Math.random() * shapes.length);
+        currentPiece = shapes[idx].map(function(row) { return row.slice(); });
+        currentColor = colors[idx];
+        currentX = Math.floor(cols / 2) - Math.floor(currentPiece[0].length / 2);
+        currentY = 0;
+        
+        if (!canMove(0, 0)) {
+            gameOver = true;
+        }
+    }
+    
+    function canMove(dx, dy, piece) {
+        piece = piece || currentPiece;
+        for (var y = 0; y < piece.length; y++) {
+            for (var x = 0; x < piece[y].length; x++) {
+                if (piece[y][x]) {
+                    var newX = currentX + x + dx;
+                    var newY = currentY + y + dy;
+                    if (newX < 0 || newX >= cols || newY >= rows) return false;
+                    if (newY >= 0 && board[newY][newX]) return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    function rotate() {
+        var rotated = [];
+        for (var x = 0; x < currentPiece[0].length; x++) {
+            rotated[x] = [];
+            for (var y = currentPiece.length - 1; y >= 0; y--) {
+                rotated[x].push(currentPiece[y][x]);
+            }
+        }
+        if (canMove(0, 0, rotated)) {
+            currentPiece = rotated;
+        }
+    }
+    
+    function lockPiece() {
+        for (var y = 0; y < currentPiece.length; y++) {
+            for (var x = 0; x < currentPiece[y].length; x++) {
+                if (currentPiece[y][x] && currentY + y >= 0) {
+                    board[currentY + y][currentX + x] = currentColor;
+                }
+            }
+        }
+        clearLines();
+        newPiece();
+    }
+    
+    function clearLines() {
+        var linesCleared = 0;
+        for (var y = rows - 1; y >= 0; y--) {
+            var full = true;
+            for (var x = 0; x < cols; x++) {
+                if (!board[y][x]) { full = false; break; }
+            }
+            if (full) {
+                board.splice(y, 1);
+                board.unshift(new Array(cols).fill(0));
+                linesCleared++;
+                y++; // Check same row again
+            }
+        }
+        score += linesCleared * 100;
+    }
+    
+    document.onkeydown = function(e) {
+        if (gameOver) return;
+        if (e.code === 'ArrowLeft' && canMove(-1, 0)) { currentX--; }
+        else if (e.code === 'ArrowRight' && canMove(1, 0)) { currentX++; }
+        else if (e.code === 'ArrowDown' && canMove(0, 1)) { currentY++; }
+        else if (e.code === 'ArrowUp' || e.code === 'Space') { rotate(); }
+        e.preventDefault();
+    };
+    
+    function draw() {
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw board
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < cols; x++) {
+                if (board[y][x]) {
+                    ctx.fillStyle = board[y][x];
+                    ctx.fillRect(offsetX + x * blockSize, y * blockSize, blockSize - 1, blockSize - 1);
+                } else {
+                    ctx.fillStyle = '#2d2d44';
+                    ctx.fillRect(offsetX + x * blockSize, y * blockSize, blockSize - 1, blockSize - 1);
+                }
+            }
+        }
+        
+        // Draw current piece
+        if (currentPiece && !gameOver) {
+            ctx.fillStyle = currentColor;
+            for (var y = 0; y < currentPiece.length; y++) {
+                for (var x = 0; x < currentPiece[y].length; x++) {
+                    if (currentPiece[y][x]) {
+                        ctx.fillRect(offsetX + (currentX + x) * blockSize, (currentY + y) * blockSize, blockSize - 1, blockSize - 1);
+                    }
+                }
+            }
+        }
+        
+        document.getElementById('gameScore').textContent = 'Score: ' + score;
+        
+        if (gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width/2, canvas.height/2);
+            ctx.font = '16px Arial';
+            ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2 + 30);
+        }
+    }
+    
+    function gameLoop() {
+        if (!gameOver && canMove(0, 1)) {
+            currentY++;
+        } else if (!gameOver) {
+            lockPiece();
+        }
+        draw();
+    }
+    
+    newPiece();
+    draw();
+    gameInterval = setInterval(gameLoop, 500);
+}
+
+// =====================
+// WHACK-A-MOLE GAME
+// =====================
+function initWhackaMole(wrapper) {
+    var container = document.createElement('div');
+    container.className = 'whack-container';
+    container.innerHTML = '<div class="whack-timer">Time: <span id="whackTimer">30</span>s</div><div class="whack-grid" id="whackGrid"></div>';
+    wrapper.appendChild(container);
+    
+    var grid = document.getElementById('whackGrid');
+    var score = 0;
+    var timeLeft = 30;
+    var activeMole = null;
+    var moleTimeout = null;
+    
+    // Create holes
+    for (var i = 0; i < 9; i++) {
+        var hole = document.createElement('div');
+        hole.className = 'whack-hole';
+        hole.dataset.index = i;
+        hole.innerHTML = '<div class="mole"><i class="bi bi-emoji-smile-fill mole-face"></i><i class="bi bi-emoji-dizzy-fill mole-hit"></i></div>';
+        hole.onclick = function() {
+            if (this.classList.contains('active')) {
+                score += 10;
+                this.classList.remove('active');
+                this.classList.add('whacked');
+                setTimeout(function(el) { el.classList.remove('whacked'); }, 300, this);
+                document.getElementById('gameScore').textContent = 'Score: ' + score;
+                showNextMole();
+            }
+        };
+        grid.appendChild(hole);
+    }
+    
+    var holes = grid.querySelectorAll('.whack-hole');
+    
+    function showNextMole() {
+        if (moleTimeout) clearTimeout(moleTimeout);
+        
+        // Hide current mole
+        holes.forEach(function(h) { h.classList.remove('active'); });
+        
+        if (timeLeft <= 0) return;
+        
+        // Show random mole
+        var randomIndex = Math.floor(Math.random() * 9);
+        holes[randomIndex].classList.add('active');
+        
+        // Auto-hide after random time
+        moleTimeout = setTimeout(function() {
+            holes[randomIndex].classList.remove('active');
+            showNextMole();
+        }, 600 + Math.random() * 800);
+    }
+    
+    function updateTimer() {
+        timeLeft--;
+        document.getElementById('whackTimer').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearTimeout(moleTimeout);
+            holes.forEach(function(h) { h.classList.remove('active'); });
+            alert('Time\'s up! Final Score: ' + score);
+            closeGame();
+        }
+    }
+    
+    document.getElementById('gameScore').textContent = 'Score: 0';
+    showNextMole();
+    gameInterval = setInterval(updateTimer, 1000);
+}
+
+// =====================
+// TYPING SPEED GAME
+// =====================
+function initTyping(wrapper) {
+    var container = document.createElement('div');
+    container.className = 'typing-container';
+    container.innerHTML = 
+        '<div class="typing-stats">' +
+            '<div class="stat"><span id="typingWpm">0</span> WPM</div>' +
+            '<div class="stat"><span id="typingAccuracy">100</span>% Accuracy</div>' +
+            '<div class="stat"><span id="typingTimer">60</span>s</div>' +
+        '</div>' +
+        '<div class="typing-display" id="typingDisplay"></div>' +
+        '<input type="text" class="typing-input" id="typingInput" placeholder="Start typing..." autocomplete="off" />' +
+        '<div class="typing-hint">Type the words above. Press Space after each word.</div>';
+    wrapper.appendChild(container);
+    
+    var words = ['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','code','java','spring','email','server','data','user','app','web','test','build','run','class','method'];
+    
+    var currentWords = [];
+    var currentIndex = 0;
+    var correctChars = 0;
+    var totalChars = 0;
+    var startTime = null;
+    var timeLeft = 60;
+    var gameStarted = false;
+    
+    function generateWords() {
+        currentWords = [];
+        for (var i = 0; i < 50; i++) {
+            currentWords.push(words[Math.floor(Math.random() * words.length)]);
+        }
+        renderWords();
+    }
+    
+    function renderWords() {
+        var display = document.getElementById('typingDisplay');
+        display.innerHTML = currentWords.map(function(word, idx) {
+            var cls = idx < currentIndex ? 'typed' : (idx === currentIndex ? 'current' : '');
+            return '<span class="word ' + cls + '">' + word + '</span>';
+        }).join(' ');
+    }
+    
+    var input = document.getElementById('typingInput');
+    input.focus();
+    
+    input.oninput = function() {
+        if (!gameStarted) {
+            gameStarted = true;
+            startTime = Date.now();
+            gameInterval = setInterval(updateTypingTimer, 1000);
+        }
+    };
+    
+    input.onkeydown = function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            var typed = input.value.trim();
+            var expected = currentWords[currentIndex];
+            
+            totalChars += expected.length;
+            if (typed === expected) {
+                correctChars += expected.length;
+            }
+            
+            currentIndex++;
+            input.value = '';
+            renderWords();
+            updateStats();
+            
+            if (currentIndex >= currentWords.length) {
+                generateWords();
+                currentIndex = 0;
+            }
+        }
+    };
+    
+    function updateStats() {
+        var elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
+        var wpm = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
+        var accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+        
+        document.getElementById('typingWpm').textContent = wpm;
+        document.getElementById('typingAccuracy').textContent = accuracy;
+        document.getElementById('gameScore').textContent = wpm + ' WPM';
+    }
+    
+    function updateTypingTimer() {
+        timeLeft--;
+        document.getElementById('typingTimer').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(gameInterval);
+            input.disabled = true;
+            var elapsed = 60 / 60;
+            var wpm = Math.round((correctChars / 5) / elapsed);
+            var accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+            alert('Time\'s up!\nWPM: ' + wpm + '\nAccuracy: ' + accuracy + '%');
+            closeGame();
+        }
+    }
+    
+    generateWords();
 }
 </script>
 

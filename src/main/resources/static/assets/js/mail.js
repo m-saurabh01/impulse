@@ -803,6 +803,10 @@ function bulkMarkRead() {
                     if (dot) dot.style.display = 'none';
                 }
             });
+            // Update sidebar unread count
+            if (typeof window.updateInboxUnreadCount === 'function') {
+                window.updateInboxUnreadCount();
+            }
             // Uncheck all and hide toolbar
             document.querySelectorAll('.email-checkbox').forEach(function(cb) {
                 cb.checked = false;

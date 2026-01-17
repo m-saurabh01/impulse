@@ -673,32 +673,40 @@ function showQuickReplyModal(id, title, content) {
     
     var modal = document.createElement('div');
     modal.id = 'quickReplyModal';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = 
-        '<div class="quick-reply-modal">' +
-            '<div class="quick-reply-modal-header">' +
-                '<i class="bi bi-lightning-fill" style="color: #6c5ce7;"></i>' +
-                '<span>' + (id ? 'Edit Quick Reply' : 'New Quick Reply') + '</span>' +
-                '<button class="close-btn" onclick="closeQuickReplyModal()"><i class="bi bi-x"></i></button>' +
+    modal.className = 'qr-modal-overlay';
+    modal.onclick = function(e) {
+        if (e.target === modal) closeQuickReplyModal();
+    };
+    
+    var modalContent = document.createElement('div');
+    modalContent.className = 'qr-modal';
+    modalContent.innerHTML = 
+        '<div class="qr-modal-header">' +
+            '<i class="bi bi-lightning-fill" style="color: #6c5ce7;"></i>' +
+            '<span>' + (id ? 'Edit Quick Reply' : 'New Quick Reply') + '</span>' +
+            '<button type="button" class="qr-close-btn" onclick="closeQuickReplyModal()"><i class="bi bi-x"></i></button>' +
+        '</div>' +
+        '<div class="qr-modal-body">' +
+            '<div class="qr-form-group">' +
+                '<label>Title</label>' +
+                '<input type="text" id="qrTitle" class="qr-input" placeholder="e.g., Thank you response" value="' + escapeHtml(title) + '">' +
             '</div>' +
-            '<div class="quick-reply-modal-body">' +
-                '<div class="form-group">' +
-                    '<label>Title</label>' +
-                    '<input type="text" id="qrTitle" class="form-control" placeholder="e.g., Thank you response" value="' + escapeHtml(title) + '">' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label>Content</label>' +
-                    '<textarea id="qrContent" class="form-control" rows="4" placeholder="Enter your quick reply text...">' + escapeHtml(content) + '</textarea>' +
-                '</div>' +
+            '<div class="qr-form-group">' +
+                '<label>Content</label>' +
+                '<textarea id="qrContent" class="qr-input qr-textarea" rows="4" placeholder="Enter your quick reply text...">' + escapeHtml(content) + '</textarea>' +
             '</div>' +
-            '<div class="quick-reply-modal-footer">' +
-                '<button type="button" class="btn btn-secondary" onclick="closeQuickReplyModal()">Cancel</button>' +
-                '<button type="button" class="btn btn-primary" onclick="saveQuickReply(' + (id || 'null') + ')">Save</button>' +
-            '</div>' +
+        '</div>' +
+        '<div class="qr-modal-footer">' +
+            '<button type="button" class="qr-btn qr-btn-secondary" onclick="closeQuickReplyModal()">Cancel</button>' +
+            '<button type="button" class="qr-btn qr-btn-primary" onclick="saveQuickReply(' + (id || 'null') + ')">Save</button>' +
         '</div>';
     
+    modal.appendChild(modalContent);
     document.body.appendChild(modal);
-    document.getElementById('qrTitle').focus();
+    
+    setTimeout(function() {
+        document.getElementById('qrTitle').focus();
+    }, 100);
 }
 
 function closeQuickReplyModal() {

@@ -23,6 +23,31 @@ import com.wipro.iaf.email.user.repo.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service class for managing the gamification achievement system in the PulseMail application.
+ * <p>
+ * This service provides a comprehensive achievement/badge system that rewards users for
+ * various activities within the application. The system includes:
+ * <ul>
+ *   <li>Automatic initialization of default achievements on startup</li>
+ *   <li>Achievement categories: SENDING, ORGANIZING, ENGAGEMENT, and SPECIAL</li>
+ *   <li>Progress tracking and automatic achievement unlocking</li>
+ *   <li>Points system with per-achievement point values</li>
+ *   <li>Notification system for newly unlocked achievements</li>
+ * </ul>
+ * </p>
+ * <p>
+ * Achievements are checked asynchronously after relevant user actions to avoid
+ * impacting response times.
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-16
+ * @see Achievement
+ * @see UserAchievement
+ * @see AchievementCategory
+ */
 @Service
 @Slf4j
 public class AchievementService {
@@ -34,6 +59,16 @@ public class AchievementService {
     private final LabelRepository labelRepo;
     private final UserRepository userRepo;
 
+    /**
+     * Constructs a new AchievementService with all required dependencies.
+     * 
+     * @param achievementRepo repository for achievement definitions
+     * @param userAchievementRepo repository for user-achievement mappings
+     * @param emailRepo repository for email statistics
+     * @param recipientRepo repository for email recipient statistics
+     * @param labelRepo repository for label statistics
+     * @param userRepo repository for user lookups
+     */
     public AchievementService(AchievementRepository achievementRepo, 
                               UserAchievementRepository userAchievementRepo,
                               EmailRepository emailRepo,
@@ -49,7 +84,20 @@ public class AchievementService {
     }
 
     /**
-     * Initialize default achievements if they don't exist.
+     * Initializes the default set of achievements in the database.
+     * <p>
+     * This method is called automatically on application startup via {@link PostConstruct}.
+     * It creates the standard achievement set across all categories:
+     * <ul>
+     *   <li>SENDING: First email, 10/50/100/500 emails sent milestones</li>
+     *   <li>ORGANIZING: Label creation milestones, Inbox Zero</li>
+     *   <li>ENGAGEMENT: Starring emails, adding contacts</li>
+     *   <li>SPECIAL: Explorer, Feedback, Early Adopter badges</li>
+     * </ul>
+     * </p>
+     * <p>
+     * If achievements already exist in the database, this method does nothing.
+     * </p>
      */
     @PostConstruct
     @Transactional
@@ -107,6 +155,9 @@ public class AchievementService {
         achievements.add(new Achievement("EARLY_ADOPTER", "Early Adopter", 
                 "Be among the first users", "bi-rocket-takeoff", "#e17055", 
                 AchievementCategory.SPECIAL, 1, 50));
+        achievements.add(new Achievement("EASTER_EGG_HUNTER", "Easter Egg Hunter", 
+                "Find all 4 hidden easter eggs", "bi-egg", "#ff6b6b", 
+                AchievementCategory.SPECIAL, 4, 200));
 
         for (Achievement a : achievements) {
             a.setSortOrder(order++);
@@ -117,7 +168,14 @@ public class AchievementService {
     }
 
     /**
-     * Get all achievements with user's unlock status.
+     * Retrieves all achievements with their unlock status for a specific user.
+     * <p>
+     * Returns all available achievements in the system, indicating which ones
+     * the user has unlocked.
+     * </p>
+     * 
+     * @param userId the ID of the user to check achievements for
+     * @return list of AchievementWithStatus objects containing achievement details and unlock status
      */
     public List<AchievementWithStatus> getAchievementsForUser(Long userId) {
         List<Achievement> allAchievements = achievementRepo.findAllByOrderBySortOrderAsc();
@@ -135,28 +193,48 @@ public class AchievementService {
     }
 
     /**
-     * Alias for getAchievementsForUser - for controller compatibility.
+     * Retrieves all achievements with their unlock status for a user.
+     * <p>
+     * This is an alias for {@link #getAchievementsForUser(Long)} provided
+     * for controller compatibility.
+     * </p>
+     * 
+     * @param userId the ID of the user
+     * @return list of AchievementWithStatus objects
      */
     public List<AchievementWithStatus> getAchievementsWithStatus(Long userId) {
         return getAchievementsForUser(userId);
     }
 
     /**
-     * Get user's unlocked achievements.
+     * Retrieves all achievements that a user has unlocked.
+     * 
+     * @param userId the ID of the user
+     * @return list of UserAchievement records with achievement details eagerly loaded
      */
     public List<UserAchievement> getUnlockedAchievements(Long userId) {
         return userAchievementRepo.findByUserIdWithAchievements(userId);
     }
 
     /**
-     * Alias for getUnlockedAchievements - for controller compatibility.
+     * Retrieves all achievements unlocked by a user.
+     * <p>
+     * This is an alias for {@link #getUnlockedAchievements(Long)} provided
+     * for controller compatibility.
+     * </p>
+     * 
+     * @param userId the ID of the user
+     * @return list of UserAchievement records
      */
     public List<UserAchievement> getUserAchievements(Long userId) {
         return getUnlockedAchievements(userId);
     }
 
     /**
-     * Get user's total achievement points.
+     * Calculates the total achievement points earned by a user.
+     * 
+     * @param userId the ID of the user
+     * @return the sum of points from all unlocked achievements, or 0 if none
      */
     public int getTotalPoints(Long userId) {
         Integer points = userAchievementRepo.getTotalPointsByUserId(userId);
@@ -164,28 +242,44 @@ public class AchievementService {
     }
 
     /**
-     * Get count of unlocked achievements.
+     * Counts the number of achievements unlocked by a user.
+     * 
+     * @param userId the ID of the user
+     * @return the count of unlocked achievements
      */
     public int getUnlockedCount(Long userId) {
         return userAchievementRepo.countByUserId(userId);
     }
 
     /**
-     * Get total available achievements.
+     * Gets the total number of achievements available in the system.
+     * 
+     * @return the total count of all defined achievements
      */
     public long getTotalAchievements() {
         return achievementRepo.count();
     }
 
     /**
-     * Get unnotified achievements (for showing popups).
+     * Retrieves achievements that have been unlocked but not yet shown to the user.
+     * <p>
+     * Used for displaying achievement popup notifications.
+     * </p>
+     * 
+     * @param userId the ID of the user
+     * @return list of UserAchievement records that haven't been notified
      */
     public List<UserAchievement> getUnnotifiedAchievements(Long userId) {
         return userAchievementRepo.findUnnotifiedByUserId(userId);
     }
 
     /**
-     * Mark all achievements as notified.
+     * Marks all of a user's achievements as notified.
+     * <p>
+     * Called after displaying achievement notifications to prevent re-display.
+     * </p>
+     * 
+     * @param userId the ID of the user
      */
     @Transactional
     public void markAchievementsNotified(Long userId) {
@@ -193,8 +287,14 @@ public class AchievementService {
     }
 
     /**
-     * Check and award achievements asynchronously.
-     * Called after email send, label creation, etc.
+     * Checks and awards achievements for a specific category asynchronously.
+     * <p>
+     * This method runs asynchronously to avoid impacting user-facing response times.
+     * It is called after relevant user actions like sending emails or creating labels.
+     * </p>
+     * 
+     * @param userId the ID of the user to check achievements for
+     * @param category the achievement category to check
      */
     @Async
     @Transactional
@@ -218,8 +318,13 @@ public class AchievementService {
     }
 
     /**
-     * Check all achievement categories.
-     * Called when we want a full check.
+     * Checks and awards achievements across all categories asynchronously.
+     * <p>
+     * Performs a comprehensive check of all achievement categories for the user.
+     * This method runs asynchronously to avoid impacting response times.
+     * </p>
+     * 
+     * @param userId the ID of the user to check achievements for
      */
     @Async
     @Transactional
@@ -233,7 +338,15 @@ public class AchievementService {
     }
 
     /**
-     * Award a specific achievement by code.
+     * Awards a specific achievement to a user by achievement code.
+     * <p>
+     * If the user already has the achievement, this method returns false
+     * and no duplicate is created.
+     * </p>
+     * 
+     * @param userId the ID of the user to award the achievement to
+     * @param achievementCode the unique code of the achievement (e.g., "FIRST_EMAIL")
+     * @return true if the achievement was newly awarded, false if already unlocked or not found
      */
     @Transactional
     public boolean awardAchievement(Long userId, String achievementCode) {
@@ -253,6 +366,15 @@ public class AchievementService {
         return false;
     }
 
+    /**
+     * Checks and awards sending-related achievements based on email count.
+     * <p>
+     * Awards: FIRST_EMAIL (1), SENDER_10 (10), SENDER_50 (50),
+     * SENDER_100 (100), SENDER_500 (500) based on sent email count.
+     * </p>
+     * 
+     * @param user the user to check achievements for
+     */
     private void checkSendingAchievements(User user) {
         long sentCount = emailRepo.countBySenderIdAndDraftFalse(user.getId());
         
@@ -263,6 +385,15 @@ public class AchievementService {
         if (sentCount >= 500) awardAchievement(user.getId(), "SENDER_500");
     }
 
+    /**
+     * Checks and awards organizing-related achievements.
+     * <p>
+     * Awards: LABEL_CREATOR (1 label), LABEL_5 (5 labels),
+     * INBOX_ZERO (no unread emails).
+     * </p>
+     * 
+     * @param user the user to check achievements for
+     */
     private void checkOrganizingAchievements(User user) {
         long labelCount = labelRepo.countByUserId(user.getId());
         
@@ -274,18 +405,38 @@ public class AchievementService {
         if (unreadCount == 0) awardAchievement(user.getId(), "INBOX_ZERO");
     }
 
+    /**
+     * Checks and awards engagement-related achievements.
+     * <p>
+     * Awards: STARGAZER (10 starred emails).
+     * </p>
+     * 
+     * @param user the user to check achievements for
+     */
     private void checkEngagementAchievements(User user) {
         long starredCount = recipientRepo.countStarredByUserId(user.getId());
         if (starredCount >= 10) awardAchievement(user.getId(), "STARGAZER");
     }
 
     /**
-     * DTO for achievement with unlock status
+     * Data Transfer Object representing an achievement with its unlock status for a user.
+     * <p>
+     * Used to display achievements in the UI with clear indication of whether
+     * the current user has unlocked each achievement.
+     * </p>
      */
     public static class AchievementWithStatus {
+        /** The achievement definition */
         public final Achievement achievement;
+        /** Whether the achievement has been unlocked by the user */
         public final boolean unlocked;
 
+        /**
+         * Constructs a new AchievementWithStatus.
+         * 
+         * @param achievement the achievement definition
+         * @param unlocked whether the achievement is unlocked
+         */
         public AchievementWithStatus(Achievement achievement, boolean unlocked) {
             this.achievement = achievement;
             this.unlocked = unlocked;

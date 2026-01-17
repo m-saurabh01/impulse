@@ -1,7 +1,5 @@
 package com.wipro.iaf.email.mail.service;
 
-
-
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +19,27 @@ import com.wipro.iaf.email.mail.entity.EmailRecipientId;
 import com.wipro.iaf.email.mail.repo.EmailRecipientRepository;
 import com.wipro.iaf.email.mail.repo.EmailRepository;
 
+/**
+ * Service class for managing user mailbox operations in the PulseMail application.
+ * <p>
+ * This service provides comprehensive mailbox functionality including:
+ * <ul>
+ *   <li>Retrieving emails from inbox, sent, drafts, trash, starred, and snoozed folders</li>
+ *   <li>Moving emails to/from trash and permanent deletion</li>
+ *   <li>Marking emails as read with optional read receipt handling</li>
+ *   <li>Email starring and snooze functionality</li>
+ *   <li>Conversation thread management</li>
+ *   <li>Inbox search and unread count tracking</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-16
+ * @see Email
+ * @see EmailRecipient
+ * @see NotificationService
+ */
 @Service
 public class MailboxService {
 
@@ -28,6 +47,13 @@ public class MailboxService {
     private final EmailRepository emailRepo;
     private final NotificationService notificationService;
 
+    /**
+     * Constructs a new MailboxService with required dependencies.
+     * 
+     * @param recipientRepo repository for email recipient operations
+     * @param emailRepo repository for email CRUD operations
+     * @param notificationService service for sending real-time notifications
+     */
     public MailboxService(EmailRecipientRepository recipientRepo,
                           EmailRepository emailRepo,
                           NotificationService notificationService) {
@@ -36,32 +62,77 @@ public class MailboxService {
         this.notificationService = notificationService;
     }
 
+    /**
+     * Retrieves a paginated list of inbox emails for a user.
+     * <p>
+     * Returns received emails that are not deleted or in trash.
+     * </p>
+     * 
+     * @param userId the ID of the user whose inbox to retrieve
+     * @param pageable pagination and sorting parameters
+     * @return a page of EmailRecipient records representing inbox emails
+     */
     @Transactional(readOnly = true)
     public Page<EmailRecipient> inbox(Long userId, Pageable pageable) {
         return recipientRepo.findInbox(userId, pageable);
     }
 
+    /**
+     * Searches the inbox for emails matching the specified query.
+     * 
+     * @param userId the ID of the user whose inbox to search
+     * @param query the search query string
+     * @param pageable pagination and sorting parameters
+     * @return a page of EmailRecipient records matching the search criteria
+     */
     @Transactional(readOnly = true)
     public Page<EmailRecipient> searchInbox(Long userId, String query, Pageable pageable) {
         return recipientRepo.searchInbox(userId, query, pageable);
     }
 
+    /**
+     * Retrieves a paginated list of sent emails for a user.
+     * 
+     * @param userId the ID of the user whose sent folder to retrieve
+     * @param pageable pagination and sorting parameters
+     * @return a page of EmailRecipient records representing sent emails
+     */
     @Transactional(readOnly = true)
     public Page<EmailRecipient> sent(Long userId, Pageable pageable) {
         return recipientRepo.findSent(userId, pageable);
     }
-    
+
+    /**
+     * Retrieves a paginated list of draft emails for a user.
+     * 
+     * @param userId the ID of the user whose drafts to retrieve
+     * @param pageable pagination and sorting parameters
+     * @return a page of Email records that are marked as drafts
+     */
     @Transactional(readOnly = true)
     public Page<Email> drafts(Long userId, Pageable pageable) {
         return emailRepo
             .findBySenderIdAndDraftTrueOrderByCreatedAtDesc(userId, pageable);
     }
 
+    /**
+     * Retrieves a paginated list of trashed emails for a user.
+     * 
+     * @param userId the ID of the user whose trash folder to retrieve
+     * @param pageable pagination and sorting parameters
+     * @return a page of EmailRecipient records that are in trash
+     */
     @Transactional(readOnly = true)
     public Page<EmailRecipient> trash(Long userId, Pageable pageable) {
         return recipientRepo.findTrash(userId, pageable);
     }
 
+    /**
+     * Moves an email to trash using the composite EmailRecipientId.
+     * 
+     * @param id the composite ID of the email recipient record
+     * @throws IllegalArgumentException if the mail is not found
+     */
     @Transactional
     public void moveToTrash(EmailRecipientId id) {
         EmailRecipient r = recipientRepo.findById(id)
@@ -71,6 +142,12 @@ public class MailboxService {
         r.setDeletedAt(LocalDateTime.now());
     }
 
+    /**
+     * Restores an email from trash using the composite EmailRecipientId.
+     * 
+     * @param id the composite ID of the email recipient record
+     * @throws IllegalArgumentException if the mail is not found
+     */
     @Transactional
     public void restoreFromTrash(EmailRecipientId id) {
         EmailRecipient r = recipientRepo.findById(id)
@@ -79,7 +156,19 @@ public class MailboxService {
         r.setDeleted(false);
         r.setDeletedAt(null);
     }
-    
+
+    /**
+     * Finds and returns an email if the specified user has access to it.
+     * <p>
+     * Access is determined by checking if the user has an EmailRecipient
+     * record for the email (as sender, TO, CC, or BCC recipient).
+     * </p>
+     * 
+     * @param emailId the ID of the email to retrieve
+     * @param userId the ID of the user requesting access
+     * @return the Email if the user has access
+     * @throws AccessDeniedException if the user does not have access to the email
+     */
     @Transactional(readOnly = true)
     public Email findEmailForUser(Long emailId, Long userId) throws AccessDeniedException {
 
@@ -90,6 +179,12 @@ public class MailboxService {
                 new AccessDeniedException("No access to email"));
     }
 
+    /**
+     * Marks an email as read for the specified user.
+     * 
+     * @param emailId the ID of the email to mark as read
+     * @param userId the ID of the user who read the email
+     */
     @Transactional
     public void markAsRead(Long emailId, Long userId) {
         recipientRepo.findByEmailIdAndUserId(emailId, userId)

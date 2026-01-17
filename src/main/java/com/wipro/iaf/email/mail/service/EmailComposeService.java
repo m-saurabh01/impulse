@@ -21,6 +21,28 @@ import com.wipro.iaf.email.user.entity.User;
 import com.wipro.iaf.email.user.repo.UserRepository;
 import com.wipro.iaf.email.user.service.AchievementService;
 
+/**
+ * Service class responsible for composing and sending emails in the PulseMail application.
+ * <p>
+ * This service handles all email composition operations including:
+ * <ul>
+ *   <li>Validating recipient email addresses and checking if users exist in the system</li>
+ *   <li>Creating new emails and updating existing drafts</li>
+ *   <li>Managing email recipients (TO, CC, BCC)</li>
+ *   <li>Handling email attachments</li>
+ *   <li>Sending real-time WebSocket notifications to recipients</li>
+ *   <li>Triggering achievement checks after sending emails</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-16
+ * @see Email
+ * @see EmailRecipient
+ * @see ComposeEmailRequest
+ * @see NotificationService
+ */
 @Service
 public class EmailComposeService {
 
@@ -35,6 +57,16 @@ public class EmailComposeService {
     private final NotificationService notificationService;
     private final AchievementService achievementService;
 
+    /**
+     * Constructs a new EmailComposeService with all required dependencies.
+     * 
+     * @param emailRepo repository for email CRUD operations
+     * @param recipientRepo repository for managing email recipients
+     * @param userRepo repository for user lookups
+     * @param attachmentService service for handling email attachments
+     * @param notificationService service for sending real-time notifications
+     * @param achievementService service for tracking user achievements
+     */
     public EmailComposeService(
             EmailRepository emailRepo,
             EmailRecipientRepository recipientRepo,
@@ -52,7 +84,20 @@ public class EmailComposeService {
     }
 
     /**
-     * Validate and send email with proper error handling
+     * Validates and sends an email with comprehensive error handling.
+     * <p>
+     * This method performs the following validations before sending:
+     * <ul>
+     *   <li>Ensures at least one recipient is specified (unless saving as draft)</li>
+     *   <li>Validates email format using regex pattern matching</li>
+     *   <li>Verifies that all recipients exist as registered users in the system</li>
+     * </ul>
+     * </p>
+     * 
+     * @param req the compose email request containing all email details
+     * @param sender the authenticated user sending the email
+     * @return EmailComposeResult containing success status and any validation errors
+     * @throws RuntimeException if an unexpected error occurs during email processing
      */
     @Transactional
     public EmailComposeResult composeAndSendWithValidation(ComposeEmailRequest req, SecurityUser sender) {
@@ -84,9 +129,12 @@ public class EmailComposeService {
                 continue;
             }
             
-            // Check if user exists in system
-            if (!userRepo.findByEmail(trimmed).isPresent()) {
+            // Check if user exists in system and is not deleted
+            java.util.Optional<User> recipientUser = userRepo.findByEmail(trimmed);
+            if (!recipientUser.isPresent()) {
                 unknownUsers.add(email);
+            } else if (recipientUser.get().isDeleted()) {
+                unknownUsers.add(email + " (account deleted)");
             }
         }
 
@@ -111,6 +159,26 @@ public class EmailComposeService {
         }
     }
 
+    /**
+     * Composes and sends an email or saves it as a draft.
+     * <p>
+     * This method handles the complete email composition workflow:
+     * <ul>
+     *   <li>Creates new emails or updates existing drafts</li>
+     *   <li>Sets email properties (subject, body, read receipt)</li>
+     *   <li>Manages email threading for conversations</li>
+     *   <li>Saves attachments and copies forwarded attachments</li>
+     *   <li>Creates recipient records for all addressees</li>
+     *   <li>Sends WebSocket notifications to all recipients</li>
+     *   <li>Triggers achievement checks for the sender</li>
+     * </ul>
+     * </p>
+     * 
+     * @param req the compose email request containing all email details
+     * @param sender the authenticated user composing the email
+     * @throws IllegalArgumentException if draft ID is provided but not found for the sender
+     * @throws RuntimeException if attachment upload fails
+     */
     @Transactional
     public void composeAndSend(ComposeEmailRequest req, SecurityUser sender) {
 
@@ -187,7 +255,15 @@ public class EmailComposeService {
     }
 
     /**
-     * Send WebSocket notifications to recipients
+     * Sends real-time WebSocket notifications to all email recipients.
+     * <p>
+     * Creates a notification preview by stripping HTML tags from the email body
+     * and truncating to 100 characters. Formats the timestamp for display.
+     * </p>
+     * 
+     * @param email the email being sent
+     * @param senderEmail the email address of the sender
+     * @param recipients list of recipient email addresses to notify
      */
     private void sendNotifications(Email email, String senderEmail, List<String> recipients) {
         // Create preview text from body (strip HTML, limit length)
@@ -214,7 +290,18 @@ public class EmailComposeService {
         notificationService.notifyNewEmailToAll(recipients, notification);
     }
 
-
+    /**
+     * Adds recipients of a specific type to an email.
+     * <p>
+     * Creates EmailRecipient records for each provided email address.
+     * Recipients are marked as unread and not deleted by default.
+     * </p>
+     * 
+     * @param email the email to add recipients to
+     * @param addresses list of recipient email addresses
+     * @param type the recipient type ("TO", "CC", or "BCC")
+     * @throws IllegalArgumentException if any email address does not correspond to a registered user
+     */
     private void addRecipients(Email email,
                                List<String> addresses,
                                String type) {

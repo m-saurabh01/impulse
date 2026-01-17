@@ -20,18 +20,50 @@ import com.wipro.iaf.email.mail.entity.QuickReply;
 import com.wipro.iaf.email.mail.service.QuickReplyService;
 import com.wipro.iaf.email.security.SecurityUser;
 
+/**
+ * Controller for managing quick reply templates.
+ * 
+ * <p>Provides REST API endpoints for CRUD operations on quick replies.
+ * Quick replies are reusable email templates that users can insert
+ * when composing emails. Users can create up to a configured maximum
+ * number of quick replies.</p>
+ * 
+ * <p>Endpoints:
+ * <ul>
+ *   <li>{@code GET /mail/quick-replies} - List all user's quick replies</li>
+ *   <li>{@code POST /mail/quick-replies} - Create a new quick reply</li>
+ *   <li>{@code GET /mail/quick-replies/{id}} - Get a specific quick reply</li>
+ *   <li>{@code PUT /mail/quick-replies/{id}} - Update a quick reply</li>
+ *   <li>{@code DELETE /mail/quick-replies/{id}} - Delete a quick reply</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see QuickReplyService
+ * @see QuickReply
+ */
 @Controller
 @RequestMapping("/mail/quick-replies")
 public class QuickReplyController {
 
     private final QuickReplyService quickReplyService;
 
+    /**
+     * Constructs the QuickReplyController with required dependencies.
+     * 
+     * @param quickReplyService service for quick reply operations
+     */
     public QuickReplyController(QuickReplyService quickReplyService) {
         this.quickReplyService = quickReplyService;
     }
 
     /**
-     * Get all quick replies for the current user (JSON)
+     * Gets all quick replies for the authenticated user.
+     * 
+     * @param user the authenticated user
+     * @return list of quick reply entities
      */
     @GetMapping
     @ResponseBody
@@ -40,7 +72,12 @@ public class QuickReplyController {
     }
 
     /**
-     * Create a new quick reply
+     * Creates a new quick reply template.
+     * 
+     * @param title   the quick reply title
+     * @param content the quick reply content/body
+     * @param user    the authenticated user
+     * @return the created quick reply or error if limit reached
      */
     @PostMapping
     @ResponseBody
@@ -57,7 +94,13 @@ public class QuickReplyController {
     }
 
     /**
-     * Update an existing quick reply
+     * Updates an existing quick reply template.
+     * 
+     * @param id      the quick reply ID to update
+     * @param title   the new title
+     * @param content the new content
+     * @param user    the authenticated user
+     * @return the updated quick reply or 404 if not found
      */
     @PutMapping("/{id}")
     @ResponseBody
@@ -75,7 +118,11 @@ public class QuickReplyController {
     }
 
     /**
-     * Delete a quick reply
+     * Deletes a quick reply template.
+     * 
+     * @param id   the quick reply ID to delete
+     * @param user the authenticated user
+     * @return 200 OK on success
      */
     @DeleteMapping("/{id}")
     @ResponseBody
@@ -87,7 +134,11 @@ public class QuickReplyController {
     }
 
     /**
-     * Get a specific quick reply content
+     * Gets a specific quick reply by ID.
+     * 
+     * @param id   the quick reply ID
+     * @param user the authenticated user
+     * @return the quick reply or 404 if not found
      */
     @GetMapping("/{id}")
     @ResponseBody
@@ -102,6 +153,12 @@ public class QuickReplyController {
         }
     }
 
+    /**
+     * Creates an error response map.
+     * 
+     * @param message the error message
+     * @return map containing the error message
+     */
     private Map<String, String> errorMap(String message) {
         Map<String, String> map = new HashMap<>();
         map.put("error", message);

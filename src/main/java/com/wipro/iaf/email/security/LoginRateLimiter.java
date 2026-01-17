@@ -7,20 +7,39 @@ import org.springframework.stereotype.Component;
 
 /**
  * Rate limiter for login attempts to prevent brute force attacks.
- * Limits login attempts per IP address.
+ * 
+ * <p>Tracks failed login attempts per IP address and locks out
+ * IP addresses that exceed the maximum allowed attempts. Uses
+ * an in-memory concurrent map for thread-safe operation.</p>
+ * 
+ * <h3>Configuration:</h3>
+ * <ul>
+ *   <li>Maximum attempts: 5</li>
+ *   <li>Lockout duration: 15 minutes</li>
+ * </ul>
+ * 
+ * @author Saurabh Mishra
+ * @version 1.0
+ * @since 2026-01-01
+ * @see LoginRateLimitFilter
+ * @see AuthenticationEventListener
  */
 @Component
 public class LoginRateLimiter {
 
+    /** Maximum failed attempts before lockout */
     private static final int MAX_ATTEMPTS = 5;
+    /** Lockout duration in milliseconds (15 minutes) */
     private static final long LOCKOUT_DURATION_MS = TimeUnit.MINUTES.toMillis(15);
 
+    /** Map of IP addresses to their attempt information */
     private final ConcurrentHashMap<String, AttemptInfo> attempts = new ConcurrentHashMap<>();
 
     /**
-     * Record a failed login attempt for the given IP.
-     * @param ipAddress The client IP address
-     * @return true if the user is now locked out
+     * Records a failed login attempt for the given IP.
+     * 
+     * @param ipAddress the client IP address
+     * @return true if the user is now locked out, false otherwise
      */
     public boolean recordFailedAttempt(String ipAddress) {
         AttemptInfo info = attempts.compute(ipAddress, (key, existing) -> {
@@ -36,9 +55,12 @@ public class LoginRateLimiter {
     }
 
     /**
-     * Check if the given IP is currently locked out.
-     * @param ipAddress The client IP address
-     * @return true if locked out
+     * Checks if the given IP is currently locked out.
+     * 
+     * <p>Also clears expired lockouts automatically.</p>
+     * 
+     * @param ipAddress the client IP address
+     * @return true if locked out, false otherwise
      */
     public boolean isBlocked(String ipAddress) {
         AttemptInfo info = attempts.get(ipAddress);
@@ -54,16 +76,18 @@ public class LoginRateLimiter {
     }
 
     /**
-     * Clear attempts for an IP after successful login.
-     * @param ipAddress The client IP address
+     * Clears attempt history for an IP after successful login.
+     * 
+     * @param ipAddress the client IP address
      */
     public void clearAttempts(String ipAddress) {
         attempts.remove(ipAddress);
     }
 
     /**
-     * Get remaining lockout time in seconds.
-     * @param ipAddress The client IP address
+     * Gets remaining lockout time in seconds.
+     * 
+     * @param ipAddress the client IP address
      * @return seconds remaining, or 0 if not locked
      */
     public long getRemainingLockoutSeconds(String ipAddress) {
@@ -77,9 +101,10 @@ public class LoginRateLimiter {
     }
 
     /**
-     * Get the number of remaining attempts before lockout.
-     * @param ipAddress The client IP address
-     * @return remaining attempts
+     * Gets the number of remaining attempts before lockout.
+     * 
+     * @param ipAddress the client IP address
+     * @return remaining attempts before lockout
      */
     public int getRemainingAttempts(String ipAddress) {
         AttemptInfo info = attempts.get(ipAddress);
@@ -93,9 +118,19 @@ public class LoginRateLimiter {
         return Math.max(0, MAX_ATTEMPTS - info.count);
     }
 
+    /**
+     * Internal class to track attempt information per IP.
+     * 
+     * @author Saurabh Mishra
+     * @version 1.0
+     * @since 2026-01-01
+     */
     private static class AttemptInfo {
+        /** Number of failed attempts */
         final int count;
+        /** Timestamp of last attempt */
         final long lastAttempt;
+        /** Whether the IP is currently locked */
         final boolean locked;
 
         AttemptInfo(int count, long lastAttempt, boolean locked) {
