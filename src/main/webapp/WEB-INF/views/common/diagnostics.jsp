@@ -471,12 +471,13 @@
 
 /* Typing Game Styles */
 .typing-container {
-    padding: 15px;
-    width: 400px;
-    height: 400px;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    min-height: 400px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    margin: 0 auto;
 }
 
 .typing-stats {
@@ -484,6 +485,7 @@
     justify-content: center;
     gap: 30px;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .typing-stats .stat {
@@ -505,11 +507,14 @@
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 20px;
-    min-height: 100px;
+    min-height: 120px;
+    max-height: 180px;
+    overflow-y: auto;
     font-size: 20px;
     line-height: 2;
     color: rgba(255,255,255,0.6);
     text-align: left;
+    flex-shrink: 0;
 }
 
 .typing-display .word {
@@ -526,15 +531,25 @@
     color: #00b894;
 }
 
+.typing-input-wrapper {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
 .typing-input {
     width: 100%;
     padding: 16px 20px;
     font-size: 20px;
     border: 2px solid #6c5ce7;
     border-radius: 12px;
-    background: rgba(255,255,255,0.1);
-    color: white;
+    background: rgba(255,255,255,0.95);
+    color: #333;
     outline: none;
+    box-sizing: border-box;
+}
+
+.typing-input::placeholder {
+    color: #999;
 }
 
 .typing-input:focus {
@@ -546,6 +561,7 @@
     margin-top: 12px;
     color: rgba(255,255,255,0.5);
     font-size: 14px;
+    text-align: center;
 }
 </style>
 
@@ -1435,8 +1451,10 @@ function initTyping(wrapper) {
             '<div class="stat"><span id="typingTimer">60</span>s</div>' +
         '</div>' +
         '<div class="typing-display" id="typingDisplay"></div>' +
-        '<input type="text" class="typing-input" id="typingInput" placeholder="Start typing..." autocomplete="off" />' +
-        '<div class="typing-hint">Type the words above. Press Space after each word.</div>';
+        '<div class="typing-input-wrapper">' +
+            '<input type="text" class="typing-input" id="typingInput" placeholder="Start typing here..." autocomplete="off" />' +
+            '<div class="typing-hint">Type the highlighted word and press Space to continue</div>' +
+        '</div>';
     wrapper.appendChild(container);
     
     var words = ['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','code','java','spring','email','server','data','user','app','web','test','build','run','class','method'];

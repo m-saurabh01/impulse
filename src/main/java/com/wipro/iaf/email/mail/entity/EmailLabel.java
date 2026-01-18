@@ -72,7 +72,8 @@ public class EmailLabel {
     @Data
     @EqualsAndHashCode
     public static class EmailLabelId implements Serializable {
-        /** The email ID */
+        private static final long serialVersionUID = 1L;
+		/** The email ID */
         private Long email;
         /** The label ID */
         private Long label;

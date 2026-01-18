@@ -57,6 +57,13 @@ function handleNewEmailNotification(notification) {
     // Show toast notification
     showEmailToast(notification);
     
+    // Show browser notification if tab is not focused
+    showBrowserNotification(
+        'New email from ' + notification.senderEmail,
+        notification.subject + ' - ' + notification.preview,
+        'new-email'
+    );
+    
     // Update inbox badge count
     updateInboxBadge(1);
     
@@ -71,6 +78,64 @@ function handleNewEmailNotification(notification) {
  */
 function handleReadReceiptNotification(notification) {
     showReadReceiptToast(notification);
+    showBrowserNotification(
+        'Read Receipt',
+        notification.readerEmail + ' read your email: "' + notification.subject + '"',
+        'read-receipt'
+    );
+}
+
+/**
+ * Request browser notification permission
+ */
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('Browser does not support notifications');
+        return;
+    }
+    
+    if (Notification.permission === 'default') {
+        Notification.requestPermission().then(function(permission) {
+            if (permission === 'granted') {
+                console.log('Notification permission granted');
+            }
+        });
+    }
+}
+
+/**
+ * Show browser push notification (works even when tab is not focused)
+ */
+function showBrowserNotification(title, body, type) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    
+    // Don't show if page is focused (toast is enough)
+    if (document.hasFocus()) return;
+    
+    var icon = contextPath + '/assets/icons/new_icon.png';
+    var tag = type + '-' + Date.now(); // Unique tag to allow multiple notifications
+    
+    var notification = new Notification(title, {
+        body: body,
+        icon: icon,
+        tag: tag,
+        requireInteraction: false,
+        silent: false
+    });
+    
+    notification.onclick = function() {
+        window.focus();
+        notification.close();
+        if (type === 'new-email') {
+            window.location.href = contextPath + '/mail/inbox';
+        }
+    };
+    
+    // Auto-close after 10 seconds
+    setTimeout(function() {
+        notification.close();
+    }, 10000);
 }
 
 /**
@@ -215,9 +280,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Initialize WebSocket on page load
+// Initialize WebSocket and browser notifications on page load
 document.addEventListener('DOMContentLoaded', function() {
     initWebSocket();
+    requestNotificationPermission();
 });
 
 /**

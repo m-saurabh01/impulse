@@ -70,6 +70,14 @@
             <i class="bi bi-info-circle-fill"></i>
             <span class="nav-label">About Impulse</span>
         </a>
+        
+        <c:if test="${pageContext.request.isUserInRole('ADMIN')}">
+            <a class="nav-item ${currentFolder == 'cleanup' ? 'active' : ''}" 
+               href="${pageContext.request.contextPath}/admin/cleanup">
+                <i class="bi bi-gear-wide-connected"></i>
+                <span class="nav-label">Data Cleanup</span>
+            </a>
+        </c:if>
     </nav>
     
     <!-- Labels Section -->

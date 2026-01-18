@@ -388,4 +388,16 @@ public interface EmailRecipientRepository
 	)
 	long countSnoozed(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
+    /**
+     * Counts the number of recipient records for a specific email.
+     * <p>
+     * Used to check if an email can be permanently deleted after all
+     * recipients have removed it from their mailbox.
+     * </p>
+     *
+     * @param emailId the unique identifier of the email
+     * @return the count of recipients for the specified email
+     */
+    long countByEmailId(Long emailId);
+
 }

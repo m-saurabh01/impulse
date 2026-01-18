@@ -80,6 +80,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/error/**",
                         "/assets/**"
                 ).permitAll()
+                // Admin-only endpoints
+                .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin(login -> login
